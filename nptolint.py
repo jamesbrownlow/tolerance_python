@@ -268,5 +268,5 @@ References
 #nptolint(x,side = 2)
 #print(nptolint(x, side = 2,method = "WILKS"))
 #print(nptolint(y, side = 2,method = "HM"))
-y = np.random.normal(size = 400000)
-print(nptolint(y,alpha=0.05, P = 0.9, side = 1,method = "YM"))
+#y = np.random.normal(size = 400000)
+#print(nptolint(y,alpha=0.05, P = 0.9, side = 1,method = "YM"))
