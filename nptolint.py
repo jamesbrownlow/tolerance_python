@@ -7,16 +7,26 @@ import distfreeest as dfe
 def nptolint(x,alpha = 0.05, P = 0.99, side = 1, method = 'WILKS', upper = None, lower = None):
     '''
     nptolint(x,alpha = 0.05, P = 0.99, side = 1, method = ('WILKS','WALD','HM','YM'), upper = None, lower = None):
-Arguments
-    x: A vector of data which no distributional assumptions are made. The data is only assumed to come from a continuous distribution.
+Parameters
+----------
+    x: list
+        A vector of data which no distributional assumptions are made. 
+        The data is only assumed to come from a continuous distribution.
     
-    alpha: The level chosen such that 1-alpha is the confidence level.
+    alpha: float, optional
+        The level chosen such that 1-alpha is the confidence level. 
+        The default is 0.05.
     
-    P: The proportion of the population to be covered by this tolerance interval.
+    P: float, optional
+        The proportion of the population to be covered by this tolerance 
+        interval. The default is 0.99.
     
-    side: Whether a 1-sided or 2-sided tolerance interval is required (determined by side = 1 or side = 2, respectively).
+    side: 1 or 2, optional
+        Whether a 1-sided or 2-sided tolerance interval is required 
+        (determined by side = 1 or side = 2, respectively). The default is 1.
     
-    method: The method for determining which indices of the ordered observations will be used for the tolerance intervals. 
+    method: string, optional
+        The method for determining which indices of the ordered observations will be used for the tolerance intervals. 
         "WILKS" is the Wilks method, which produces tolerance bounds symmetric 
         about the observed center of the data by using the beta distribution. 
         
@@ -32,12 +42,18 @@ Arguments
         "YM" is the Young-Mathew method for performing interpolation or 
         extrapolation based on the order statistics. 
         See below for more information on this method.
+        
+        The default is "WILKS"
     
-    upper: The upper bound of the data. When NULL, then the maximum of x is used. 
-    If method = "YM" and extrapolation is performed, then upper will be greater than the maximum.
+    upper: float, optional 
+        The upper bound of the data. When None, then the maximum of x is used. 
+        If method = "YM" and extrapolation is performed, then upper will be 
+        greater than the maximum. The default value is None.
     
-    lower: The lower bound of the data. When NULL, then the minimum of x is used. 
-    If method = "YM" and extrapolation is performed, then lower will be less than the minimum.
+    lower: float, optional
+        The lower bound of the data. When None, then the minimum of x is used. 
+        If method = "YM" and extrapolation is performed, then lower will be 
+        less than the minimum. The default value is None.
     
 Details
     For the Young-Mathew (YM) method, interpolation or extrapolation is performed. 
@@ -46,8 +62,9 @@ Details
     on fractional order statistics (FOS-Based). When side = 2, only an interval 
     based on linear interpolation/extrapolation of order statistics is given.
     
-Value
-  uniftol.int returns a data frame with items:
+Returns
+-------
+  nptolint returns a data frame with items:
         
     alpha: The specified significance level.
     
@@ -62,6 +79,7 @@ Value
     2-sided.upper: The 2-sided upper tolerance bound. This is given only if side = 2.
 
 References
+----------
     Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance Intervals. 
         Journal of Statistical Software, 36(5), 1-39. URL http://www.jstatsoft.org/v36/i05/.
     
@@ -79,6 +97,11 @@ References
     Young, D. S. and Mathew, T. (2014), Improved Nonparametric Tolerance 
         Intervals Based on Interpolated and Extrapolated Order Statistics, Journal 
         of Nonparametric Statistics, 26, 415–432.
+Examples
+--------
+    ## 90%/95% 2-sided nonparametric tolerance intervals for a sample of size 20. 
+
+    nptol.int(x = x, alpha = 0.10, P = 0.95, side = 1, method = "WILKS", upper = NULL, lower = NULL)
     '''
     n = len(x)
     if n < 2:
@@ -255,18 +278,3 @@ References
         else:
             temp = tif.twosided(x=x,alpha=alpha,P=P)
     return temp
-
-
-#y = np.random.normal(0,1,size = 100)
-#y = np.random.normal(size = 10)*10
-#y = np.random.uniform(size = 430000)
-#x = np.array([12,21,4,2,5,6,7,3,31,23,34,21,22,20,3,4,2,6,89,23,45,6,2,4,6,24,
-              # 6,34,23,54,65,7,32,42,42,1,7,89,56,54,23,15,87,8,9,56,12,3,5,69,
-              # 8,7,41,56,100,59,80,69,52,46,78,90,78,45,46,49,1,56,26,36,32,55,
-              # 44,88,74,9,6,55,90,32,39,40,19,21,24,5,62,14,13,56,75,23,5,77,12,
-              # 78,45,12,56,98,78,45,12,35])
-#nptolint(x,side = 2)
-#print(nptolint(x, side = 2,method = "WILKS"))
-#print(nptolint(y, side = 2,method = "HM"))
-#y = np.random.normal(size = 400000)
-#print(nptolint(y,alpha=0.05, P = 0.9, side = 1,method = "YM"))
