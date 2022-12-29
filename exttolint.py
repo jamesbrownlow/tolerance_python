@@ -7,7 +7,7 @@ def exttolint(x, alpha = 0.05, P = 0.99, side = 1, dist = 'Weibull', ext = 'min'
     '''
 ------------------------------------------------------------------------------
     
-exttolint(x, alpha = 0.05, P = 0.99, side = 1, method = ["Weibull","Gumbel"], ext = 'min', NRdelta = 1e-8)
+exttolint(x, alpha = 0.05, P = 0.99, side = 1, dist = ["Weibull","Gumbel"], ext = 'min', NRdelta = 1e-8)
 
 Description
     Provides 1-sided or 2-sided tolerance intervals for data distributed 
