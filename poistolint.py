@@ -163,5 +163,3 @@ Examples
         return pd.DataFrame({"alpha":[alpha], "P":[P], "lambda.hat":[x/n], "2-sided.lower":lower, "2-sided.upper":upper})
     else:
         return pd.DataFrame({"alpha":[alpha], "P":[P], "lambda.hat":[x/n], "1-sided.lower":lower, "1-sided.upper":upper})
-    
-help(poistolint)
