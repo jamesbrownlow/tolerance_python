@@ -64,7 +64,7 @@ Examples
     '''
     if side != 1 and side != 2:
         return 'Must specify a one-sided or two-sided procedure.'
-    if len(list(x)) == 0 or len(list(x)) == 1:
+    if type(x) == int or type(x) == float:
         return 'Must have more than one element in your data.'
     if side == 2:
         alpha = alpha/2
@@ -82,6 +82,3 @@ Examples
         return pd.DataFrame({"alpha":[alpha], "P":[P], "2-sided.lower": lower, "2-sided.upper": upper})
     else:
         return pd.DataFrame({"alpha":[alpha], "P":[P], "1-sided.lower": lower, "1-sided.upper": upper})
-
-lapto
-
