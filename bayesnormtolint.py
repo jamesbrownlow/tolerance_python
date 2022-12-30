@@ -312,12 +312,3 @@ Examples
 # print(bayesnormtolint(x=[1,2,3,4],method = 'OCT', side = 2, hyperpar = test_dict))
 # print(bayesnormtolint(x=[1,2,3,4],method = 'OCT', side = 2))#,hyperpar = test_dict))
 # print(bayesnormtolint(normstats = stats_dict, method = 'OCT', side = 2,hyperpar=test_dict))#,hyperpar = test_dict))
-    
-    
-bayesnor
-    
-    
-    
-    
-    
-    
