@@ -120,6 +120,12 @@ def bayesnormtolint(x = None, normstats = {'xbar':np.nan,'s':np.nan,'n':np.nan},
                     alpha = 0.05, P = 0.99, side = 1, method = 'HE', m = 50, 
                     hyperpar = {'mu0':None,'sig20':None,'m0':None,'n0':None}):
     '''
+Bayesian Normal Tolerance Intervals
+
+Description
+    Provides 1-sided or 2-sided Bayesian tolerance intervals under the 
+    conjugate prior for data distributed according to a normal distribution.
+    
     bayesnormtol.int(x = None, normstats = {'xbar':np.nan,'s':np.nan,'n':np.nan},
                     alpha = 0.05, P = 0.99, side = 1, method = ("HE", "HE2", "WBE", 
                  "ELL", "KM", "EXACT", "OCT"), m = 50,
