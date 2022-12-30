@@ -220,7 +220,7 @@ Examples
     
         x = np.random.normal(size=100)
         
-        normtol.int(x, alpha = 0.05, P = 0.95, side = 2, 
+        normtolint(x, alpha = 0.05, P = 0.95, side = 2, 
                     method = "HE", log.norm = FALSE)
     '''
     if lognorm:
