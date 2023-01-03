@@ -137,7 +137,6 @@ Examples
         print("Sample size and lot size are the same.  This is just a census!\n")
     return temp
 
-accsa
 #print(accsamp(n = 400, N = 960000))
 
 #hypergeom.cdf(x, M, n, N)
