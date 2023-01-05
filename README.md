@@ -3,4 +3,5 @@ Python package for tolerance intervals. Derived from: Derek S. Young (2010). tol
 
 The package answers the practical question: "I have (1-α)*100% confidence that (P)*100% of my population falls within certain bounds."
 
-The gamtolint file is slightly different than the R equivalent, this is due to R using the Newton minimization method and the Python code uses the CG minimization method. 
+Notes:
+- The gamtolint file is slightly different than the R equivalent, this is due to R using the Newton minimization method and the Python code uses the CG minimization method. 
