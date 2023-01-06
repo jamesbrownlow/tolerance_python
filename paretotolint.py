@@ -249,5 +249,3 @@ Examples
         return pd.DataFrame({'alpha':[alpha],'P':[P],'2-sided.lower':lower,'2-sided.upper':upper})
     else:
         return pd.DataFrame({'alpha':[alpha],'P':[P],'1-sided.lower':lower,'1-sided.upper':upper})
-    
-paretotol
