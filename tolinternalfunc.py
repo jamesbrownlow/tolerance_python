@@ -243,14 +243,26 @@ def twosided(x,alpha,P):
                     ord1 = 2
     else:
         XL = np.array([x[r[0]],x[r[0]+1]])
-        XU = np.array([x[s[0]],x[s[0]+1]])
-        g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-r[0]-1,n,P),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)))]))
-        outL = LSReg(XL,g,gamma)
-        outU = LSReg(XU,g,gamma)
-        temp1 = pd.DataFrame({'0':[outL,x[r[0]]]})
-        temp2 = pd.DataFrame({'1':[x[s[0]],outU]})
-        temp3 = pd.DataFrame({'2':[x[s[0]]-outL,outU-x[r[0]]]})
-        temp = pd.concat([temp1,temp2,temp3],axis=1)
+        if s[0] == length(x):
+            XU = np.array([x[s[0]-1],x[s[0]-2]])
+            print(s[0]-(r[0]+1)-1)
+            g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-2,n,P))]))
+            print(g)
+            outL = LSReg(XL,g,gamma)
+            outU = LSReg(XU,g,gamma)
+            temp1 = pd.DataFrame({'0':[outL,x[r[0]]]})
+            temp2 = pd.DataFrame({'1':[x[s[0]-1],outU]})
+            temp3 = pd.DataFrame({'2':[x[s[0]-1]-outL,outU-x[r[0]]]})
+            temp = pd.concat([temp1,temp2,temp3],axis=1)
+        else:
+            XU = np.array([x[s[0]],x[s[0]+1]])
+            g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-r[0]-1,n,P),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)))]))
+            outL = LSReg(XL,g,gamma)
+            outU = LSReg(XU,g,gamma)
+            temp1 = pd.DataFrame({'0':[outL,x[r[0]]]})
+            temp2 = pd.DataFrame({'1':[x[s[0]],outU]})
+            temp3 = pd.DataFrame({'2':[x[s[0]]-outL,outU-x[r[0]]]})
+            temp = pd.concat([temp1,temp2,temp3],axis=1)
         if scipy.stats.binom.cdf(s[0]-r[0]-1,n,P) >= gamma:
             indtemp = list(temp['2'])
             ind = indtemp.index(min(indtemp))
@@ -259,4 +271,61 @@ def twosided(x,alpha,P):
             temp = list([outL,outU])
     temp = pd.DataFrame({'alpha':[alpha], 'P':[P],'2-sided.lower':temp[0],'2-sided.upper':temp[1]},['OS-Based'])
     return temp
+
+# def twosided(x,alpha,P):
+#     n = len(x)
+#     x = sorted(x)
+#     gamma = 1-alpha
+#     out = nptolint(range(n+1),alpha=alpha,P=P,side=2,method='HM')[['2-sided lower','2-sided upper']]
+#     r = np.ravel(np.array(out[['2-sided lower']]).T)
+#     s = np.ravel(np.array(out[['2-sided upper']]).T)
+#     r = [int(x) for x in r]
+#     s = [int(x) for x in s]
+#     if (len(out.index) == 2): #around 430,000 datapoints needed for this to be true
+#         X1L = np.array([x[r[0]],x[r[0]+1]])
+#         X2L = np.array([x[r[1]],x[r[1]+1]])
+#         X1U = np.array([x[s[0]],x[s[0]-1]])
+#         X2U = np.array([x[s[1]],x[s[1]-1]])
+#         g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-r[0]-1,n,P),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)))]))
+#         #predict using X1L and g, you are here
+#         out1L = LSReg(X1L,g,gamma)
+#         out2L = LSReg(X2L,g,gamma)
+#         out1U = LSReg(X1U,g,gamma)
+#         out2U = LSReg(X2U,g,gamma)
+#         temp1 = pd.DataFrame({'0':[out1L,out2L,x[r[0]],x[r[1]]]})
+#         temp2 = pd.DataFrame({'1':[x[s[0]],x[s[1]],out1U,out2U]})
+#         temp3 = pd.DataFrame({'2':[x[s[0]]-out1L,x[s[1]]-out2L,out1U-x[r[0]],out2U-x[r[0]]]})
+#         temp = pd.concat([temp1,temp2,temp3],axis=1)
+#         if scipy.stats.binom.cdf(s[1]-r[1]-1,n,P) >= gamma:
+#             indtemp = list(temp['2'])
+#             ind = indtemp.index(max(indtemp))
+#             temp = list(temp.iloc[ind,0:2])
+#             if ind==1 or ind==3:
+#                 ord1 = 1
+#             else:
+#                 indtemp = list(temp['2'])
+#                 ind = indtemp.index(max(indtemp))
+#                 temp = list(temp.iloc[ind,0:2])
+#                 if ind==1 or ind ==3:
+#                     ord1 = 1
+#                 else:
+#                     ord1 = 2
+#     else:
+#         XL = np.array([x[r[0]],x[r[0]+1]])
+#         XU = np.array([x[s[0]],x[s[0]+1]])
+#         g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-r[0]-1,n,P),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)))]))
+#         outL = LSReg(XL,g,gamma)
+#         outU = LSReg(XU,g,gamma)
+#         temp1 = pd.DataFrame({'0':[outL,x[r[0]]]})
+#         temp2 = pd.DataFrame({'1':[x[s[0]],outU]})
+#         temp3 = pd.DataFrame({'2':[x[s[0]]-outL,outU-x[r[0]]]})
+#         temp = pd.concat([temp1,temp2,temp3],axis=1)
+#         if scipy.stats.binom.cdf(s[0]-r[0]-1,n,P) >= gamma:
+#             indtemp = list(temp['2'])
+#             ind = indtemp.index(min(indtemp))
+#             temp = list(temp.iloc[ind,0:2])
+#         else:
+#             temp = list([outL,outU])
+#     temp = pd.DataFrame({'alpha':[alpha], 'P':[P],'2-sided.lower':temp[0],'2-sided.upper':temp[1]},['OS-Based'])
+#     return temp
 
