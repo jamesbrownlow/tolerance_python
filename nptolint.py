@@ -1,8 +1,112 @@
 import numpy as np
 import scipy.stats
-import pandas as pd
-import tolinternalfunc as tif
-import distfreeest as dfe
+import scipy.optimize as opt
+import pandas as pd 
+#import tolinternalfunc as tif
+
+def length(x):
+    if type(x) == float or type(x) == int:
+        return 1
+    return len(x)
+
+def f(n,alpha,P):
+    return alpha - (n * P**(n - 1) - (n - 1) * P**n)
+
+def bisection(a,b,n,alpha,tol=1e-8):
+    xl = a
+    xr = b
+    while np.abs(xl-xr) >= tol:
+        c = (xl+xr)/2
+        prod = f(n=n,alpha=alpha,P=xl)*f(n=n,alpha=alpha,P=c)
+        if prod > tol:
+            xl = c
+        else:
+            if prod < tol:
+                xr = c
+    return c
+
+def distfreeest2(n = None, alpha = None, P = None, side = 1):
+    temp = 0
+    if n == None:
+        temp += 1
+    if alpha == None:
+        temp +=1
+    if P == None:
+        temp += 1
+    if temp > 1:
+        return 'Must specify values for any two of n, alpha, and P'
+    if (side != 1 and side != 2):
+        return 'Must specify a 1-sided or 2-sided interval'
+    if side == 1:
+        if n == None:
+            ret = int(np.ceil(np.log(alpha)/np.log(P)))
+        if P == None:
+            ret = np.exp(np.log(alpha)/n)
+            ret = float(f'{ret:.4f}')
+        if alpha == None:
+            ret = 1-P**n
+    else:
+        if alpha == None:
+            ret = 1-(np.ceil((n*P**(n-1)-(n-1)*P**n)*10000))/10000
+        if n == None:
+            ret = int(np.ceil(opt.brentq(f,a=0,b=1e100,args=(alpha,P),maxiter=1000)))
+        if P == None:
+            ret = np.ceil(bisection(0,1,alpha =alpha, n = n, tol = 1e-8)*10000)/10000    
+    return ret
+
+def distfreeest(n = None, alpha = None, P = None, side = 1):
+    if n == None:
+        if type(alpha) == float:
+            alpha = [alpha]
+        if type(P) == float:
+            P = [P]
+        A = length(alpha)
+        B = length(P)
+        column_names = np.zeros(B)
+        row_names = np.zeros(A)
+        matrix = np.zeros((A,B))
+        for i in range(A): 
+            row_names[i] = alpha[i]
+            for j in range(B):
+                column_names[j] = P[j]
+                matrix[i,j] = distfreeest2(alpha=alpha[i],P=P[j],side=side)
+        out = pd.DataFrame(matrix,columns = column_names, index = row_names)
+        
+    if alpha == None:
+        if type(n) == float or type(n) == int:
+            n = [n]
+        if type(P) == float:
+            P = [P]
+        A = length(n)
+        B = length(P)
+        column_names = np.zeros(B)
+        row_names = np.zeros(A)
+        matrix = np.zeros((A,B))
+        for i in range(A): 
+            row_names[i] = n[i]
+            for j in range(B):
+                column_names[j] = P[j]
+                matrix[i,j] = distfreeest2(n=n[i],P=P[j],side=side)
+        out = pd.DataFrame(matrix,columns = column_names, index = row_names)
+        
+    if P == None:
+        if type(alpha) == float:
+            alpha = [alpha]
+        if type(n) == float or type(n) == int:
+            n = [n]
+        A = length(alpha)
+        B = length(n)
+        print(f'length of alpha = {A}',f'length of n = {B}')
+        column_names = np.zeros(B)
+        row_names = np.zeros(A)
+        matrix = np.zeros((A,B))
+        for i in range(A): 
+            row_names[i] = alpha[i]
+            for j in range(B):
+                column_names[j] = n[j]
+                matrix[i,j] = distfreeest2(alpha=alpha[i],n=n[j],side=side)
+        out = pd.DataFrame(matrix,columns = column_names, index = row_names)
+    return out
 
 def nptolint(x,alpha = 0.05, P = 0.99, side = 1, method = 'WILKS', upper = None, lower = None):
     '''
@@ -268,13 +372,179 @@ Examples
             d = {'alpha': [alpha], 'P': [P], '1-sided lower': lower, '1-sided upper': upper}
             temp = pd.DataFrame(data=d)
     if method == 'YM':
-        nmin = int(np.array(dfe.distfreeest(alpha = alpha, P=P, side = side).iloc[0]))
+        nmin = int(np.array(distfreeest(alpha = alpha, P=P, side = side).iloc[0]))
         temp = None
         if side == 1:
             if n < nmin:
-                temp = tif.extrap(x=x,alpha=alpha,P=P)
+                temp = extrap(x=x,alpha=alpha,P=P)
             else:
-                temp = tif.interp(x=x,alpha=alpha,P=P)
+                temp = interp(x=x,alpha=alpha,P=P)
         else:
-            temp = tif.twosided(x=x,alpha=alpha,P=P)
+            temp = twosided(x=x,alpha=alpha,P=P)
     return temp
+
+def fl(u1,u,n,alpha):
+    #error of 1e-5 compared to R
+    return scipy.stats.beta.cdf(u,(n+1)*u1,(n+1)*(1-u1))-1+alpha
+
+def fu(u2,u,n,alpha):
+    #error of 1e-5 compared to R
+    return scipy.stats.beta.cdf(u,(n+1)*u2,(n+1)*(1-u2))-alpha
+
+def eps(u,n):
+    return (n+1)*u-np.floor((n+1)*u)
+
+def neps(u,n):
+    return -((n+1)*u-np.floor((n+1)*u))
+
+def LSReg(y,x,gamma):  
+    
+    xbar = sum(x)/len(x)
+    ybar = sum(y)/len(y)
+    sumx = []
+    sumx2 = []
+    sumy = []
+    sumxy = []
+    for i in range(len(x)):
+        sumx.append(x[i])
+        sumx2.append(x[i]**2)
+        sumy.append(y[i])
+        sumxy.append(y[i]*x[i])
+    ssxx = sum(sumx2) - (1/len(x))*sum(sumx)**2
+    ssxy = sum(sumxy) - (1/len(y))*sum(sumy)*sum(sumx)
+    B1 = ssxy/ssxx
+    B0 = ybar - B1*xbar
+    return B0+B1*gamma #regression equation with xi = gamma      
+
+def interp(x,alpha,P):
+    n = len(x)
+    x = sorted(x)
+    gamma = 1-alpha
+    out = list(nptolint(range(n+1),alpha=alpha,P=P,side=1)[['1-sided lower','1-sided upper']].loc[0])
+    s = out[0]
+    r = out[1]
+    ###Beran-Hall
+    pil = (gamma-scipy.stats.binom.cdf(n-s-1,n,P))/scipy.stats.binom.pmf(n-s,n,P)
+    piu = (gamma-scipy.stats.binom.cdf(r-2,n,P))/scipy.stats.binom.pmf(r-1,n,P)
+    if s == n:
+        Ql = x[s]
+    else:
+        Ql = pil*x[s+1]+(1-pil)*x[s]
+    if r == 1:
+        Qu = x[r-1]
+    else:
+        Qu = piu*x[r-1] + (1-piu)*x[r-2]
+    ###Hutson
+    u1 = opt.brentq(fl, a = 0.00001,b=0.99999,args=(1-P,n,alpha))
+    u2 = opt.brentq(fu, a = 0.00001,b=0.99999,args=(P,n,alpha))
+    if s == n:
+        Qhl = x[s]
+    else:
+        Qhl = (1 - eps(u1, n)) * x[s] + eps(u1, n) * x[s + 1]
+    if r == 1:
+        Qhu = x[r-1]
+    else:
+        Qhu = (1 - eps(u2, n)) * x[r - 2] + eps(u2, n) * x[r-1]
+    names = ['alpha','P','1-sided.lower','1-sided.upper']
+    temp = pd.DataFrame([[alpha,P,Ql,Qu],[alpha,P,Qhl,Qhu]],columns=names)
+    temp.index = ['OS-Based','FOS-Based']
+    #return value is slightly different than R due to rounding. and scipy.stats.beta.cdf() vs pbeta()
+    return temp
+
+def extrap(x,alpha,P):
+    n = len(x)
+    x = sorted(x)
+    gamma = 1-alpha
+    out = list(nptolint(range(n+1),alpha=alpha,P=P,side=1)[['1-sided lower','1-sided upper']].loc[0])
+    pib = -(gamma-scipy.stats.binom.cdf(n-1,n,P))/(scipy.stats.binom.pmf(n-1,n,P))
+    Qexpl = pib*x[1]+(1-pib)*x[0]
+    Qexpu = pib*x[n-2]+(1-pib)*x[n-1]
+    u1b = opt.brentq(fl, a = 0.00001,b=0.99999,args=(1-P,n,alpha))
+    u2b = opt.brentq(fu, a = 0.00001,b=0.99999,args=(P,n,alpha))
+    Qhexpl = (1-neps(u1b,n))*x[0]+neps(u1b,n)*x[1]
+    Qhexpu = (1-neps(u2b,n))*x[n-1]+neps(u2b,n)*x[n-2]
+    names = ['alpha','P','1-sided.lower','1-sided.upper']
+    temp = pd.DataFrame([[alpha,P,Qexpl,Qexpu],[alpha,P,Qhexpl,Qhexpu]],columns=names)
+    temp.index = ['OS-Based','FOS-Based']
+    return temp
+
+def twosided(x,alpha,P):
+    n = len(x)
+    x = sorted(x)
+    gamma = 1-alpha
+    out = nptolint(range(n+1),alpha=alpha,P=P,side=2,method='HM')[['2-sided lower','2-sided upper']]
+    r = np.ravel(np.array(out[['2-sided lower']]).T)
+    s = np.ravel(np.array(out[['2-sided upper']]).T)
+    r = [int(x) for x in r]
+    s = [int(x) for x in s]
+    if (len(out.index) == 2): #around 430,000 datapoints needed for this to be true
+        X1L = np.array([x[r[0]],x[r[0]+1]])
+        X2L = np.array([x[r[1]],x[r[1]+1]])
+        X1U = np.array([x[s[0]],x[s[0]-1]])
+        X2U = np.array([x[s[1]],x[s[1]-1]])
+        g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-r[0]-1,n,P),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)))]))
+        #predict using X1L and g, you are here
+        out1L = LSReg(X1L,g,gamma)
+        out2L = LSReg(X2L,g,gamma)
+        out1U = LSReg(X1U,g,gamma)
+        out2U = LSReg(X2U,g,gamma)
+        temp1 = pd.DataFrame({'0':[out1L,out2L,x[r[0]],x[r[1]]]})
+        temp2 = pd.DataFrame({'1':[x[s[0]],x[s[1]],out1U,out2U]})
+        temp3 = pd.DataFrame({'2':[x[s[0]]-out1L,x[s[1]]-out2L,out1U-x[r[0]],out2U-x[r[0]]]})
+        temp = pd.concat([temp1,temp2,temp3],axis=1)
+        if scipy.stats.binom.cdf(s[1]-r[1]-1,n,P) >= gamma:
+            indtemp = list(temp['2'])
+            ind = indtemp.index(max(indtemp))
+            temp = list(temp.iloc[ind,0:2])
+            if ind==1 or ind==3:
+                ord1 = 1
+            else:
+                indtemp = list(temp['2'])
+                ind = indtemp.index(max(indtemp))
+                temp = list(temp.iloc[ind,0:2])
+                if ind==1 or ind ==3:
+                    ord1 = 1
+                else:
+                    ord1 = 2
+    else:
+        XL = np.array([x[r[0]],x[r[0]+1]])
+        if s[0] == length(x):
+            XU = np.array([x[s[0]-1],x[s[0]-2]])
+            print(s[0]-(r[0]+1)-1)
+            g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-2,n,P))]))
+            print(g)
+            outL = LSReg(XL,g,gamma)
+            outU = LSReg(XU,g,gamma)
+            temp1 = pd.DataFrame({'0':[outL,x[r[0]]]})
+            temp2 = pd.DataFrame({'1':[x[s[0]-1],outU]})
+            temp3 = pd.DataFrame({'2':[x[s[0]-1]-outL,outU-x[r[0]]]})
+            temp = pd.concat([temp1,temp2,temp3],axis=1)
+        else:
+            XU = np.array([x[s[0]],x[s[0]+1]])
+            g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-r[0]-1,n,P),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)))]))
+            outL = LSReg(XL,g,gamma)
+            outU = LSReg(XU,g,gamma)
+            temp1 = pd.DataFrame({'0':[outL,x[r[0]]]})
+            temp2 = pd.DataFrame({'1':[x[s[0]],outU]})
+            temp3 = pd.DataFrame({'2':[x[s[0]]-outL,outU-x[r[0]]]})
+            temp = pd.concat([temp1,temp2,temp3],axis=1)
+        if scipy.stats.binom.cdf(s[0]-r[0]-1,n,P) >= gamma:
+            indtemp = list(temp['2'])
+            ind = indtemp.index(min(indtemp))
+            temp = list(temp.iloc[ind,0:2])
+        else:
+            temp = list([outL,outU])
+    temp = pd.DataFrame({'alpha':[alpha], 'P':[P],'2-sided.lower':temp[0],'2-sided.upper':temp[1]},['OS-Based'])
+    return temp
+
+
+x = np.array([12,21,4,2,5,6,7,3,31,23,34,21,22,20,3,4,2,6,89,23,45,6,2,4,6,24,
+               6,34,23,54,65,7,32,42,42,1,7,89,56,54,23,15,87,8,9,56,12,3,5,69,
+               8,7,41,56,100,59,80,69,52,46,78,90,78,45,46,49,1,56,26,36,32,55,
+               44,88,74,9,6,55,90,32,39,40,19,21,24,5,62,14,13,56,75,23,5,77,12,
+               78,45,12,56,98,78,45,12,35])
+
+#print(nptolint(x, side = 2,method = "WILKS"))
+# print(nptolint(x, side = 2,method = "HM"))
+print(nptolint(x,alpha=0.05, P = 0.99, side = 2,method = "YM"))
+
