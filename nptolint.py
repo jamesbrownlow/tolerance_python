@@ -536,15 +536,3 @@ def twosided(x,alpha,P):
             temp = list([outL,outU])
     temp = pd.DataFrame({'alpha':[alpha], 'P':[P],'2-sided.lower':temp[0],'2-sided.upper':temp[1]},['OS-Based'])
     return temp
-
-
-x = np.array([12,21,4,2,5,6,7,3,31,23,34,21,22,20,3,4,2,6,89,23,45,6,2,4,6,24,
-               6,34,23,54,65,7,32,42,42,1,7,89,56,54,23,15,87,8,9,56,12,3,5,69,
-               8,7,41,56,100,59,80,69,52,46,78,90,78,45,46,49,1,56,26,36,32,55,
-               44,88,74,9,6,55,90,32,39,40,19,21,24,5,62,14,13,56,75,23,5,77,12,
-               78,45,12,56,98,78,45,12,35])
-
-#print(nptolint(x, side = 2,method = "WILKS"))
-# print(nptolint(x, side = 2,method = "HM"))
-print(nptolint(x,alpha=0.05, P = 0.99, side = 2,method = "YM"))
-
