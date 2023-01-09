@@ -6,6 +6,7 @@ from scipy.special import digamma
 def exttolint(x, alpha = 0.05, P = 0.99, side = 1, dist = 'Weibull', ext = 'min', NRdelta = 1e-8):
     '''
 ------------------------------------------------------------------------------
+Weibull (or Extreme-Value) Tolerance Intervals
     
 exttolint(x, alpha = 0.05, P = 0.99, side = 1, dist = ["Weibull","Gumbel"], ext = 'min', NRdelta = 1e-8)
 
