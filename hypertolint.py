@@ -169,26 +169,4 @@ Examples
     else:
         return df({"alpha":[alpha], "P":[P], "rate":[rate], "p.hat":[phat], "1-sided.lower":lower, "1-sided.upper":upper})
         
-print(hypertolint(x = [3,45], n = 532, N = 1435, m = None, alpha = 0.01, P = 0.99, side = 2, method = "LS"))
-
-
-
-
-
-
-hypert
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#print(hypertolint(x = [3,45], n = 532, N = 1435, m = None, alpha = 0.01, P = 0.99, side = 2, method = "LS"))
