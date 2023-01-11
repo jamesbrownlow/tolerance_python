@@ -6,5 +6,5 @@ Python package for tolerance intervals. Derived from: Derek S. Young (2010). tol
 The package answers the practical question: "I have (1-α)*100% confidence that (P)*100% of my population falls within certain bounds."
 
 Notes:
-- The gamtolint file is slightly different than the R equivalent, this is due to R using the Newton minimization method and the Python code uses the CG minimization method. 
+- The gamtolint file is slightly different than the R equivalent, this is due to R using the Newton minimization method and the Python code uses the SLSQP minimization method. Both methods use nonlinear minimization. 
 - Kfactor is +/-2 units different than R when using the 'Exact' method, this is due to the methods used to integrate (.quad, Python) and optimize (.brentq, Python). 
