@@ -262,12 +262,10 @@ Examples
     else:
         return (pd.DataFrame({"alpha":[alpha], "P":[P], "2-sided.lower":lower, "2-sided.upper":upper}))
 
-print('This code uses the CG method. R uses the Newton-type algorithm',
-      'When there is a 0 inside the list x, R and Python produce',
-      'the same results. Otherwise, Python tends to produce tighter bounds',
-      'than R.')
+print('THIS CODE IS BROKEN!')
+
 
 #x = [1,2,3,4,5,6,7,8,9,9,8,4,6,2,1,6,8,4,3,2,4,6,8,4,2,4,6,7,8,2,3,5,7,5,2,3,4,0]
 #x = [1,2]
-#x = [0,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,2,3,4,5,6,7,8,9,3,4,5,6,7,8,9,4,5,6,7,8,9,5,6,7,8,9,6,7,8,9,7,8,9,8,9,9]
+#x = [31,20,20,27,26,26,30,25,24,29,111,2,3,4,2,5,6,777,3,223,425,151,100]
 #print(gamtolint(x,side=2,))
