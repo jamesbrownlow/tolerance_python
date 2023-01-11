@@ -249,7 +249,7 @@ Examples
     x = np.array(x)
     def gammall(pars,x):
         return sum(-scipy.stats.gamma.logpdf(x,a=pars[0],scale=pars[1])) #for y in x])
-    out = (opt.minimize(gammall,x0 = inits, args = (x),method = 'SLSQP')['x'])
+    out = (opt.minimize(gammall,x0 = inits, args = (x),method = 'BFGS')['x'])
     ahat = out[0]
     bhat = out[1]
     x = x**(1/3)
@@ -272,4 +272,3 @@ Examples
 #x = [1,2]
 #x = [31,20,20,27,26,26,30,25,24,29,111,2,3,4,2,5,6,777,3,223,425,151,100]
 #print(gamtolint(x,side=2))
-gam
