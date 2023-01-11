@@ -333,7 +333,3 @@ Examples
     else:
         s = '\nThe inputted function returns a list, if this is ever happens email me at baileyarzate@gmail.com so I can add code here to handle it. I couldn\'t find a case while testing'
         return s
-    
-        
-
-bonf
