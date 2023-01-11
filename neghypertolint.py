@@ -485,4 +485,3 @@ Examples
         
 #print(neghypertolint(50, n=541, N=600, method = 'LS'))
 #print(neghypertolint(50, 20, 100, m = 20, alpha = 0.05, P = 0.95, side = 1, method = "EX"))
-negh
