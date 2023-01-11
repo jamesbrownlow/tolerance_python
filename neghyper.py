@@ -254,11 +254,17 @@ Examples
         tmp2.loc[len(tmp2.index)] = -np.inf
         tempout = pd.concat([tmp1,tmp2],axis = 1)
         tempout.columns = ['temp','']
-    for i in range(length(p)):
+    if length(p) > 1:
+        for i in range(length(p)):
+            if lowertail:
+                allp.append(min(tempout[tempout['']>=p[i]]['temp']))
+            else:
+                allp.append(min(tempout[tempout['']<p[i]]['temp']))
+    else:
         if lowertail:
-            allp.append(min(tempout[tempout['']>=p[i]]['temp']))
+                allp.append(min(tempout[tempout['']>=p]['temp']))
         else:
-            allp.append(min(tempout[tempout['']<p[i]]['temp']))
+                allp.append(min(tempout[tempout['']<p]['temp']))
     return allp
 
 def rnhyper(nn, m, n, k):
