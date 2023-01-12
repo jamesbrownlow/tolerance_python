@@ -72,7 +72,7 @@ Details
 
 Returns
 -------
-    fidbintol returns an f string with two sections. The first section 
+    fidbintolint returns an f string with two sections. The first section 
     (Tolerance Limits) is a dataframe with the following items:
         alpha :
             The specified significance level.
