@@ -71,7 +71,7 @@ Details
 
 Returns
 -------
-    fidnegbintol returns an f string with two sections. The first section 
+    fidnegbintolint returns an f string with two sections. The first section 
     (Tolerance Limits) is a dataframe with the following items:
         alpha :
             The specified significance level.
