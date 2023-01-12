@@ -60,8 +60,6 @@ Parameters
         See Details for the definition of the fiducial quantity for a negative 
         binomial proportion.
 
-
-        
     B : int, optional
         The number of iterations used for the Monte Carlo algorithm which 
         determines the tolerance limits. The number of iterations should be at 
