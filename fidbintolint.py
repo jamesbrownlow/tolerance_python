@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats as st
 
+
 def fidbintolint(x1, x2, n1, n2, FUN, m1 = None, m2 = None, alpha = 0.05, P = 0.99, side = 1, K = 1000, B = 1000):
     '''
 Fiducial-Based Tolerance Intervals for the Function of Two Binomial 
@@ -13,9 +14,8 @@ Description
     binomial proportions using fiducial quantities.
 
 Usage
-    fidbintol.int(x1, x2, n1, n2, m1 = NULL, m2 = NULL, FUN, 
-                  alpha = 0.05, P = 0.99, side = 1, K = 1000, 
-                  B = 1000)   
+    fidbintolint(x1, x2, n1, n2, FUN, m1 = None, m2 = None, alpha = 0.05, 
+                 P = 0.99, side = 1, K = 1000, B = 1000)   
 
 Parameters
 ----------
@@ -59,12 +59,12 @@ Parameters
         The number of fiducial quantities to be generated. The number of 
         iterations should be at least as large as the default value of 1000. 
         See Details for the definition of the fiducial quantity for a binomial 
-        proportion. The default is 1000.
+        proportion.
         
     B : int, optional
         The number of iterations used for the Monte Carlo algorithm which 
         determines the tolerance limits. The number of iterations should be at 
-        least as large as 1000. The default is 1000.
+        least as large as the default value of 1000.
 
 Details
     If X is observed from a Bin(n,p) distribution, then the fiducial quantity 
@@ -121,7 +121,7 @@ References
 
 Examples
 --------
-    95%/99% 1-sided and 2-sided tolerance intervals for the difference between 
+    ## 95%/99% 1-sided and 2-sided tolerance intervals for the difference between 
     binomial proportions.
     
         p1 = 0.2
@@ -173,9 +173,9 @@ Examples
     if side == 2:
         alpha = alpha * 2
         P = (2*P)-1
-        return f'Tolerance Limits \n {pd.DataFrame({"alpha":[alpha], "P":[P], "fn.est":est, "2-sided.lower":lower, "2-sided.upper":upper})} \n\nFunction\n {F}'
+        return f'Tolerance Limits \n {pd.DataFrame({"alpha":[alpha], "P":[P], "fn.est":est, "2-sided.lower":lower, "2-sided.upper":upper})} \n\nFunction\n {F}\n'
     else:
-        return f'Tolerance Limits \n {pd.DataFrame({"alpha":[alpha], "P":[P], "fn.est":est, "1-sided.lower":lower, "1-sided.upper":upper})} \n\nFunction\n {F}'
+        return f'Tolerance Limits \n {pd.DataFrame({"alpha":[alpha], "P":[P], "fn.est":est, "1-sided.lower":lower, "1-sided.upper":upper})} \n\nFunction\n {F}\n'
     
 # p1 = 0.2
 # p2 = 0.4
@@ -187,6 +187,7 @@ Examples
 # y = sym.Symbol('y')
 # fn = x-y
 # print(fidbintolint(x1=x1, x2=x2, n1=n1, n2=n2, FUN=fn,m1=500,m2=500,side = 1))
+# print(fidbintolint(x1=x1, x2=x2, n1=n1, n2=n2, FUN=fn,m1=500,m2=500,side = 2))
 
 
         
