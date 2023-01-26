@@ -91,14 +91,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
-                print('This method prodcues slightly different results',
-                      'when compared to R. Take these results with',
-                      'a grain of salt. The range of error',
-                      'is between approximately (1e-3,2.0).',
-                      'If this method is abosolutely needed',
-                      'use R instead.')
                 def fun1(z,df1,P,X,n):
-                    k = (scipy.stats.chi2.sf(df1*scipy.stats.chi2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
+                    k = (scipy.stats.chi2.cdf(df1*scipy.stats.ncx2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
                     return k
                 def fun2(X,df1,P,n,alpha,m):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
@@ -270,5 +264,5 @@ Examples
 
 #x = [1,2,3,4,5,6,7,8,9,9,8,4,6,2,1,6,8,4,3,2,4,6,8,4,2,4,6,7,8,2,3,5,7,5,2,3,4,0]
 #x = [1,2]
-#x = [31,20,20,27,26,26,30,25,24,29,111,2,3,4,2,5,6,777,3,223,425,151,100]
-#print(gamtolint(x,side=2))
+x = [31,20,20,27,26,26,30,25,24,29,111,2,3,4,2,5,6,777,3,223,425,151,100]
+print(gamtolint(x,side=2))
