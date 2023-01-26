@@ -633,7 +633,12 @@ Examples
                     while(np.sum(withinspec)==0 and n < np.inf):
                         newn = int(newn)
                         newn = list(range(newn,(newn+inc*1000)+1))
-                        K2 = Kfactor(n = newn, alpha = alpha, P = P, side = 2, method = 'HE')
+                        if length(newn) == 1:
+                            K2 = Kfactor(n = newn, alpha = alpha, P = P, side = 2, method = 'HE')
+                        else:
+                            K2 = np.zeros(length(newn))
+                            for i in range(len(K2)):
+                                K2[i] = Kfactor(n = newn[i], alpha = alpha, P = P, side = 2, method = 'HE')
                         TI1 = mu0 - K2*s0
                         TI2 = mu0 + K2*s0
                         withinspec.extend(TITest(x=[TI1,TI2],L=specL,U=specU))
@@ -800,6 +805,9 @@ Examples
         n = newn
         delta = float(delta)
     return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':[int(n)]})
+
+
+print(normss(alpha = 0.05, P = 0.95, side = 2, spec = [-4,4],method = 'DIR', mu0 = 1, sig20 = 1.1,m0=12,n0=30, delta = .62, Pprime = .998,fast = True))
 
 
 
