@@ -802,9 +802,6 @@ Examples
     return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':[int(n)]})
 
 
-print(normss(x=[2,5,12],alpha = 0.05, P = 0.95, side = 2, spec = [-4,4],method = 'YGZO', mu0 = 1, sig20 = 1.1,m0=12,n0=30, delta = .62, Pprime = .998))
-
-
 
 
 
