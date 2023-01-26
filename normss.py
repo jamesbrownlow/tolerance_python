@@ -15,9 +15,8 @@ def length(x):
 
 def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
     K=None
-    n = np.array(n)
     if f == None:
-        f=n-1
+        f = n-1
     if (len((n,)*1)) != len((f,)*1) and (len((f,)*1) > 1):
         return 'Length of \'f\' needs to match length of \'n\'!'
     if (side != 1) and (side != 2):
@@ -41,11 +40,11 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     K1 = (zp * np.sqrt(V * (1 + (n * V/(2 * f)) * (1 + 1/za**2))))
                     G = (f-2-chia)/(2*(n+1)**2)
                     K2 = (zp * np.sqrt(((f * (1 + 1/n))/(chia)) * (1 + G)))
-                    if f.all() > dfcut.any():
+                    if f > dfcut:
                         K = K1
                     else:
                         K = K2
-                        if K.all() == np.nan or K.all() == None:
+                        if K == np.nan or K == None:
                             K = 0
                     return K
                 #TEMP5 = np.vectorize(TEMP4())
@@ -86,35 +85,26 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 K = k2
                 return K
             elif method == 'OCT':
-                delta = sqrt(n)*scipy.stats.norm.ppf((1+P)/2)
+                delta = np.sqrt(n)*scipy.stats.norm.ppf((1+P)/2)
                 def Fun1(z,P,ke,n,f1,delta):
-                    return (2 * scipy.stats.norm.cdf(-delta + (ke * sqrt(n * z))/(sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
+                    return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m,)
+                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'Nelder-Mead')['x']
+                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
-                #print('This method prodcues slightly different results',
-                #      'when compared to R. The range of error',
-                #      'is between approximately (1e-3,3.0).',
-                #      'If this method is abosolutely needed',
-                #      'use R instead.')
                 def fun1(z,df1,P,X,n):
-                    k = np.array((scipy.stats.chi2.sf(df1*scipy.stats.chi2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2)))
+                    k = (scipy.stats.chi2.cdf(df1*scipy.stats.ncx2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
                     return k
                 def fun2(X,df1,P,n,alpha,m):
-                    return np.array(integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m))
+                    return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                if type(n) == float or type(n) == int or type(n) == np.int32 or type(n) == np.float64 or type(n) == np.float32 or type(n) == np.int64 or n.size == 1:    
-                    K = np.array(opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m)))
-                else:
-                    K = []
-                    for i in range(n):
-                        K.append(opt.brentq(f=fun3,a=0,b=k2+(1000)/n[i], args=(f,P,n,alpha,m)))
+                
+                K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
         #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
@@ -570,7 +560,6 @@ Examples
                method = 'FW', mu0 = 1, sig20 = 1.1, m0 = 12, n0 = 30, 
                delta = .62, Pprime = .998)
     '''
-    print('Many factors internally make Python and R return slightly different sample sizes here.')
     if side != 1 and side != 2:
         return "Must specify a one-sided or two-sided procedure."
     if spec[0] == None:
@@ -800,7 +789,7 @@ Examples
     return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':[int(n)]})
 
 
-#print(normss(x=[1,2],alpha = 0.05, P = 0.95, side = 2, spec = [-4,4],method = 'FW', mu0 = 1, sig20 = 1.1,m0=12,n0=30, delta = .62, Pprime = .998))
+print(normss(x=[1,2],alpha = 0.05, P = 0.95, side = 2, spec = [-4,4],method = 'DIR', mu0 = 1, sig20 = 1.1,m0=12,n0=30, delta = .62, Pprime = .998))
 
 
 
