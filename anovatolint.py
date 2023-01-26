@@ -6,6 +6,16 @@ import scipy.optimize as opt
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
 
+import scipy.stats
+import numpy as np
+#import pandas as pd
+import scipy.integrate as integrate
+#import statistics as st
+import warnings
+warnings.filterwarnings('ignore')
+
+import scipy.optimize as opt
+
 def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
     K=None
     if f == None:
@@ -89,19 +99,14 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
-                print('This method prodcues slightly different results',
-                      'when compared to R. Take these results with',
-                      'a grain of salt. The range of error',
-                      'is between approximately (1e-3,2.0).',
-                      'If this method is abosolutely needed',
-                      'use R instead.')
                 def fun1(z,df1,P,X,n):
-                    k = (scipy.stats.chi2.sf(df1*scipy.stats.chi2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
+                    k = (scipy.stats.chi2.cdf(df1*scipy.stats.ncx2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
                     return k
                 def fun2(X,df1,P,n,alpha,m):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
+                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
         #TEMP = np.vectorize(Ktemp)
