@@ -15,6 +15,7 @@ def length(x):
 
 def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
     K=None
+    #n=np.array(n)
     if f == None:
         f = n-1
     if (len((n,)*1)) != len((f,)*1) and (len((f,)*1) > 1):
@@ -97,13 +98,12 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
-                    k = (scipy.stats.chi2.cdf(df1*scipy.stats.ncx2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
+                    k = (scipy.stats.chi2.sf(df1*scipy.stats.ncx2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
                     return k
                 def fun2(X,df1,P,n,alpha,m):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
         #TEMP = np.vectorize(Ktemp)
@@ -724,21 +724,21 @@ Examples
             newn = newn[np.where(newn>3)]
             try:
                 df1 = pd.DataFrame(newn)
-                if length(newn) > 1:
-                    df2 = []
-                    df3 = []
-                    for i in range(length(newn)):
-                        df2.append(Kfactor(n=newn[i],P=P,alpha=alpha,side=2,method="EXACT",m=m))
-                        df3.append(Kfactor(n=newn[i],P=Pprime,alpha=1-delta,side=2,method="EXACT",m=m))
-                    df2 = pd.DataFrame(df2)
-                    df3 = pd.DataFrame(df3)
-                    out = pd.concat([df1,df2,df3],axis=1)
-                else:
-                    df2 = Kfactor(n=newn,P=P,alpha=alpha,side=2,method="EXACT",m=m)
-                    df3 = pd.DataFrame(Kfactor(n=newn,P=Pprime,alpha=1-delta,side=2,method="EXACT",m=m)) 
-                    df2 = pd.DataFrame(float(df2))
-                    df3 = pd.DataFrame(float(df3))
-                    out = pd.concat([df1,df2,df3],axis=1)
+                # if length(newn) > 1:
+                #     df2 = []
+                #     df3 = []
+                #     for i in range(length(newn)):
+                #         df2.append(Kfactor(n=newn[i],P=P,alpha=alpha,side=2,method="EXACT",m=m))
+                #         df3.append(Kfactor(n=newn[i],P=Pprime,alpha=1-delta,side=2,method="EXACT",m=m))
+                #     df2 = pd.DataFrame(df2)
+                #     df3 = pd.DataFrame(df3)
+                #     out = pd.concat([df1,df2,df3],axis=1)
+                # else:
+                df2 = Kfactor(n=newn,P=P,alpha=alpha,side=2,method="EXACT",m=m)
+                df3 = Kfactor(n=newn,P=Pprime,alpha=1-delta,side=2,method="EXACT",m=m) 
+                df2 = pd.DataFrame(float(df2))
+                df3 = pd.DataFrame(float(df3))
+                out = pd.concat([df1,df2,df3],axis=1)
             except:
                 newn = nstar
             else:
@@ -769,13 +769,26 @@ Examples
                     newn = nstar + np.array(range(-6,-1))
                     diff2 = out.iloc[:,1]-out.iloc[:,2]
                     df1 = pd.DataFrame(newn)
-                    df2 = pd.DataFrame(Kfactor(n=newn,P=P,alpha=alpha,side=2,method="EXACT",m=m))
-                    df3 = pd.DataFrame(Kfactor(n=newn,P=P.prime,alpha=1-delta,side=2,method="EXACT",m=m))
+                    # if length(newn) > 1:
+                    #     df2 = []
+                    #     df3 = []
+                    #     for i in range(length(newn)):
+                    #         df2.append(Kfactor(n=newn[i],P=P,alpha=alpha,side=2,method="EXACT",m=m))
+                    #         df3.append(Kfactor(n=newn[i],P=Pprime,alpha=1-delta,side=2,method="EXACT",m=m))
+                    #     df2 = pd.DataFrame(df2)
+                    #     df3 = pd.DataFrame(df3)
+                    #     out = pd.concat([df1,df2,df3],axis=1)
+                    # else:
+                    df2 = Kfactor(n=newn,P=P,alpha=alpha,side=2,method="EXACT",m=m)
+                    df3 = Kfactor(n=newn,P=Pprime,alpha=1-delta,side=2,method="EXACT",m=m)
+                    df2 = pd.DataFrame(float(df2))
+                    df3 = pd.DataFrame(float(df3))
                     out = pd.concat([df1,df2,df3],axis=1)
                     min_diff2_idx = diff2[diff2<0].idxmin()
                     out = out.iloc[:,0]
                     newn = out.iloc[min_diff2_idx]     
                 else:
+                    print(out)
                     min_diff_idx = diff[diff<0].idxmin()
                     out = out.iloc[:,0]
                     newn = out.iloc[min_diff_idx]
@@ -789,7 +802,7 @@ Examples
     return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':[int(n)]})
 
 
-print(normss(x=[1,2],alpha = 0.05, P = 0.95, side = 2, spec = [-4,4],method = 'DIR', mu0 = 1, sig20 = 1.1,m0=12,n0=30, delta = .62, Pprime = .998))
+print(normss(x=[2,5,12],alpha = 0.05, P = 0.95, side = 2, spec = [-4,4],method = 'YGZO', mu0 = 1, sig20 = 1.1,m0=12,n0=30, delta = .62, Pprime = .998))
 
 
 
