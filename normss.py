@@ -491,6 +491,7 @@ Parameters
         of the specification limits must be specified. If side = 2, then both 
         specification limits must be specified. The default is [None,None].
         0
+        
     mu0, sig20, m0, n0 : optional
         Necessary parameter values for the different methods. If 
         method = "DIR" or method = "YGZO", then mu0 and sig20 must be 
