@@ -3,6 +3,16 @@ import scipy.stats
 import scipy.integrate as integrate
 import scipy.optimize as opt
 
+import scipy.stats
+import numpy as np
+#import pandas as pd
+import scipy.integrate as integrate
+#import statistics as st
+import warnings
+warnings.filterwarnings('ignore')
+
+import scipy.optimize as opt
+
 def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
     K=None
     if f == None:
@@ -93,7 +103,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                       'If this method is abosolutely needed',
                       'use R instead.')
                 def fun1(z,df1,P,X,n):
-                    k = (scipy.stats.chi2.sf(df1*scipy.stats.chi2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
+                    k = (scipy.stats.chi2.cdf(df1*scipy.stats.ncx2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
                     return k
                 def fun2(X,df1,P,n,alpha,m):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
