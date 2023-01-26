@@ -315,4 +315,3 @@ Examples
 # print(negbintolint(x = 50, n = 10, side = 2,method = method))
 # print(negbintolint(x= 51, n = 10, side = 1,method = method))
 # print(negbintolint(x = [50,0,0,0,0,0,1,0,0,0], n = 10, side = 2,method = method))
-neg
