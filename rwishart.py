@@ -55,6 +55,5 @@ Example:
         for i in range(p-1):
             for j in range((p-1)-i):
                 X[i][j+1+i] = st.norm.rvs(size = 1)
-        print(X)
         X = np.dot(X.T,X)
         return X
