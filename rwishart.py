@@ -43,7 +43,7 @@ Example:
     #print(X.iloc[0][1])
     chi2rvs = []
     for i in range(p):
-        chi2rvs.append(np.sqrt(st.chi2.rvs(size = 1,df = 10-i)))
+        chi2rvs.append(np.sqrt(st.chi2.rvs(size = 1,df = df-i)))
     np.fill_diagonal(X,chi2rvs)
     if p > 1:
         a = []
@@ -55,7 +55,6 @@ Example:
         for i in range(p-1):
             for j in range((p-1)-i):
                 X[i][j+1+i] = st.norm.rvs(size = 1)
+        print(X)
         X = np.dot(X.T,X)
         return X
-rwi
-    
