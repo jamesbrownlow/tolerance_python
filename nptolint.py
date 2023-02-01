@@ -5,7 +5,7 @@ import pandas as pd
 #import tolinternalfunc as tif
 
 def length(x):
-    if type(x) == float or type(x) == int:
+    if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
         return 1
     return len(x)
 
