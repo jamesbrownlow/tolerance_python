@@ -1,13 +1,114 @@
+import pandas as pd
 import numpy as np
-import scipy.stats
-import scipy.optimize as opt
-import pandas as pd 
-#import tolinternalfunc as tif
+import statsmodels as sm
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+lin = LinearRegression()
+
+lowess = sm.nonparametric.smoothers_lowess.lowess
 
 def length(x):
-    if type(x) == float or type(x) == int:
+    if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
         return 1
     return len(x)
+
+import scipy.stats
+import scipy.optimize as opt
+#import tolinternalfunc as tif
+
+#https://github.com/joaofig/pyloess
+import math
+def tricubic(x):
+    y = np.zeros_like(x)
+    idx = (x >= -1) & (x <= 1)
+    y[idx] = np.power(1.0 - np.power(np.abs(x[idx]), 3), 3)
+    return y
+
+#nonparametric smoothing routine
+#https://github.com/joaofig/pyloess
+class Loess(object):
+
+    @staticmethod
+    def normalize_array(array):
+        min_val = np.min(array)
+        max_val = np.max(array)
+        return (array - min_val) / (max_val - min_val), min_val, max_val
+
+    def __init__(self, xx, yy, degree=1):
+        self.n_xx, self.min_xx, self.max_xx = self.normalize_array(xx)
+        self.n_yy, self.min_yy, self.max_yy = self.normalize_array(yy)
+        self.degree = degree
+
+    @staticmethod
+    def get_min_range(distances, window):
+        min_idx = np.argmin(distances)
+        n = len(distances)
+        if min_idx == 0:
+            return np.arange(0, window)
+        if min_idx == n-1:
+            return np.arange(n - window, n)
+
+        min_range = [min_idx]
+        while len(min_range) < window:
+            i0 = min_range[0]
+            i1 = min_range[-1]
+            if i0 == 0:
+                min_range.append(i1 + 1)
+            elif i1 == n-1:
+                min_range.insert(0, i0 - 1)
+            elif distances[i0-1] < distances[i1+1]:
+                min_range.insert(0, i0 - 1)
+            else:
+                min_range.append(i1 + 1)
+        return np.array(min_range)
+
+    @staticmethod
+    def get_weights(distances, min_range):
+        max_distance = np.max(distances[min_range])
+        weights = tricubic(distances[min_range] / max_distance)
+        return weights
+
+    def normalize_x(self, value):
+        return (value - self.min_xx) / (self.max_xx - self.min_xx)
+
+    def denormalize_y(self, value):
+        return value * (self.max_yy - self.min_yy) + self.min_yy
+
+    def estimate(self, x, window, use_matrix=False, degree=1):
+        n_x = self.normalize_x(x)
+        distances = np.abs(self.n_xx - n_x)
+        min_range = self.get_min_range(distances, window)
+        weights = self.get_weights(distances, min_range)
+
+        if use_matrix or degree > 1:
+            wm = np.multiply(np.eye(window), weights)
+            xm = np.ones((window, degree + 1))
+
+            xp = np.array([[math.pow(n_x, p)] for p in range(degree + 1)])
+            for i in range(1, degree + 1):
+                xm[:, i] = np.power(self.n_xx[min_range], i)
+
+            ym = self.n_yy[min_range]
+            xmt_wm = np.transpose(xm) @ wm
+            beta = np.linalg.pinv(xmt_wm @ xm) @ xmt_wm @ ym
+            y = (beta @ xp)[0]
+        else:
+            xx = self.n_xx[min_range]
+            yy = self.n_yy[min_range]
+            sum_weight = np.sum(weights)
+            sum_weight_x = np.dot(xx, weights)
+            sum_weight_y = np.dot(yy, weights)
+            sum_weight_x2 = np.dot(np.multiply(xx, xx), weights)
+            sum_weight_xy = np.dot(np.multiply(xx, yy), weights)
+
+            mean_x = sum_weight_x / sum_weight
+            mean_y = sum_weight_y / sum_weight
+
+            b = (sum_weight_xy - mean_x * mean_y * sum_weight) / \
+                (sum_weight_x2 - mean_x * mean_x * sum_weight)
+            a = mean_y - b * mean_x
+            y = a + b * n_x
+        return self.denormalize_y(y)
 
 def f(n,alpha,P):
     return alpha - (n * P**(n - 1) - (n - 1) * P**n)
@@ -383,6 +484,7 @@ Examples
             temp = twosided(x=x,alpha=alpha,P=P)
     return temp
 
+
 def fl(u1,u,n,alpha):
     #error of 1e-5 compared to R
     return scipy.stats.beta.cdf(u,(n+1)*u1,(n+1)*(1-u1))-1+alpha
@@ -537,14 +639,158 @@ def twosided(x,alpha,P):
     temp = pd.DataFrame({'alpha':[alpha], 'P':[P],'2-sided.lower':temp[0],'2-sided.upper':temp[1]},['OS-Based'])
     return temp
 
+def npregtolint(x, y, yhat, side = 1, alpha = 0.05, P = 0.99, method = 'WILKS', upper = None, lower = None):
+    '''
+Nonparametric Regression Tolerance Bounds
 
-#x = np.array([12,21,4,2,5,6,7,3,31,23,34,21,22,20,3,4,2,6,89,23,45,6,2,4,6,24,
-#               6,34,23,54,65,7,32,42,42,1,7,89,56,54,23,15,87,8,9,56,12,3,5,69,
-#               8,7,41,56,100,59,80,69,52,46,78,90,78,45,46,49,1,56,26,36,32,55,
-#               44,88,74,9,6,55,90,32,39,40,19,21,24,5,62,14,13,56,75,23,5,77,12,
-#               78,45,12,56,98,78,45,12,35])
+Description
+    Provides 1-sided or 2-sided nonparametric regression tolerance bounds.
 
-#print(nptolint(x, side = 2,method = "WILKS"))
-# print(nptolint(x, side = 2,method = "HM"))
-#print(nptolint(x,alpha=0.05, P = 0.99, side = 2,method = "YM"))
+Usage
+    npregtolint(x, y, yhat, side = 1, alpha = 0.05, P = 0.99,
+                method = ["WILKS", "WALD", "HM"], upper = None, 
+                lower = None)
 
+Parameters
+----------
+    x : array
+        A vector of values for the predictor variable. Currently, this 
+        function is only capable of handling a single vector.
+
+    y : array
+        A vector of values for the response variable.
+        
+    yhat : array
+        A vector of fitted values extracted from a nonparametric smoothing 
+        routine. 
+        
+    side : 1 or 2, optional
+        Whether a 1-sided or 2-sided tolerance bound is required (determined 
+        by side = 1 or side = 2, respectively). The default is 1.
+        
+    alpha : float, optional
+        The level chosen such that 1-alpha is the confidence level. The 
+        default is 0.05.
+        
+    P : float, optional
+        The proportion of the population to be covered by the tolerance 
+        bound(s). The default is 0.99.
+        
+    method : string, optional
+        The method for determining which indices of the ordered residuals will
+        be used for the tolerance bounds. "WILKS", "WALD", and "HM" are each 
+        described in nptolint. However, since only one tolerance bound can 
+        actually be reported for this procedure, only the first tolerance 
+        bound will be returned. Note that this is not an issue when method = 
+        "WILKS" is used as it only produces one set of tolerance bounds. The 
+        default is 'WILKS'.
+        
+    upper : float, optional
+        The upper bound of the data. When None, then the maximum of x is used. 
+        The default is None.
+        
+    lower : float, optional
+        The lower bound of the data. When None, then the minimum of x is used. The default is None.
+
+Returns
+-------
+    npregtolint returns a data frame with items:
+
+        alpha	
+            The specified significance level.
+
+        P	
+            The proportion of the population covered by the tolerance bound(s).
+
+        x	
+            The values of the predictor variable.
+
+        y	
+            The values of the response variable.
+
+        y.hat	
+            The predicted value of the response for the fitted nonparametric 
+            smoothing routine.
+                
+        1-sided.lower	
+            The 1-sided lower tolerance bound. This is given only if side = 1.
+
+        1-sided.upper	
+            The 1-sided upper tolerance bound. This is given only if side = 1.
+
+        2-sided.lower	
+            The 2-sided lower tolerance bound. This is given only if side = 2.
+
+        2-sided.upper	
+            The 2-sided upper tolerance bound. This is given only if side = 2.
+
+References
+----------
+    Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance 
+        Intervals. Journal of Statistical Software, 36(5), 1-39. 
+        URL http://www.jstatsoft.org/v36/i05/.
+        
+    Young, D. S. (2013), Regression Tolerance Intervals, Communications in 
+        Statistics - Simulation and Computation, 42, 2040–2055.
+        
+Examples
+--------
+    ## 95%/99% 1-sided nonparametric regression tolerance bounds for a sample
+    of size 16.
+    
+        x = np.array([5,10,12,7,40,27,12,30,22,32,44,9,17,25,33,12])
+        
+        def f(x):
+            return x**(1.2345)
+        
+        y = f(x)
+        
+        loess = Loess(x,y)
+        
+        yhat = []
+        
+        for a in x:
+            
+            yhat.append(loess.estimate(a, window = 8, use_matrix = False, 
+                                       degree = 2))
+        
+        npregtolint(x, y, yhat)
+    '''
+    n = length(x)
+    if length(x) != n or length(y) != n or length(yhat) != n:
+        return "The predictor vector, response vector, and fitted value vector must all be of the same length!"
+    if length(x) == 1:
+        x = [x]
+        y = [y]
+        yhat = [yhat]
+    x = np.array(x)
+    y = np.array(y)
+    yhat = np.array(yhat)
+    res = y-yhat
+    toltemp = nptolint(res, side = side, alpha = alpha, P = P, method = method, upper = upper, lower = lower)
+    outtemp = []
+    upper = []
+    lower = []
+    temp = []
+    for i in (range(length(toltemp.iloc[:,0]))):
+        upper.append(yhat + toltemp.iloc[i,3])
+        lower.append(yhat + toltemp.iloc[i,2])
+        alpha = pd.DataFrame([alpha,]*length(x))
+        P = pd.DataFrame([P,]*length(x))
+        x = pd.DataFrame(x)
+        y = pd.DataFrame(y)
+        yhat = pd.DataFrame(yhat)
+        lower = pd.DataFrame(lower).T
+        upper = pd.DataFrame(upper).T
+        temp = pd.concat([alpha,P,x,y,yhat,lower,upper],axis=1)
+        if side == 1:
+            temp.columns = ["alpha", "P", "x", "y", "yhat", "1-sided.lower", "1-sided.upper"]
+        else:
+            temp.columns = ["alpha", "P", "x", "y", "yhat", "2-sided.lower", "2-sided.upper"]
+        index = int(np.where(temp.columns == 'yhat')[0])
+        temp = temp.sort_values(by='x')
+        temp.index = (range(length(x)))
+        outtemp.append(temp)
+    if length(outtemp) == 1:
+        outtemp = outtemp[0]
+    return outtemp
