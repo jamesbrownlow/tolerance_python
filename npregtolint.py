@@ -1,23 +1,16 @@
 import pandas as pd
 import numpy as np
-import statsmodels as sm
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
-lin = LinearRegression()
-
-lowess = sm.nonparametric.smoothers_lowess.lowess
+import scipy.stats
+import scipy.optimize as opt
+import math
 
 def length(x):
     if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
         return 1
     return len(x)
 
-import scipy.stats
-import scipy.optimize as opt
-#import tolinternalfunc as tif
-
 #https://github.com/joaofig/pyloess
-import math
+
 def tricubic(x):
     y = np.zeros_like(x)
     idx = (x >= -1) & (x <= 1)
@@ -483,7 +476,6 @@ Examples
         else:
             temp = twosided(x=x,alpha=alpha,P=P)
     return temp
-
 
 def fl(u1,u,n,alpha):
     #error of 1e-5 compared to R
