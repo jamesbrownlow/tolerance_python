@@ -6,6 +6,11 @@ import scipy.optimize as opt
 import warnings
 warnings.filterwarnings('ignore')
 
+def length(x):
+    if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
+        return 1
+    return len(x)
+
 def nptolint(x,alpha = 0.05, P = 0.99, side = 1, method = 'WILKS', upper = None, lower = None):
     n = len(x)
     if n < 2:
