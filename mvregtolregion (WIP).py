@@ -10,6 +10,63 @@ def length(x):
         return 1
     return len(x)
 
+def rwishart(df, p):
+    '''
+Random Wishart Distributed Matrices
+
+Usage
+    rwishart(df, p)
+    
+
+Parameters
+----------
+    df : int
+        The degrees of freedom for the Wishart matrix to be generated.
+    p : int
+        The dimension of the random Wishart matrix.
+
+Returns
+-------
+    X : matrix
+        Random generation of Wishart matrices.
+        
+References
+    Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance 
+        Intervals. Journal of Statistical Software, 36(5), 1-39. 
+        URL http://www.jstatsoft.org/v36/i05/.
+        
+    Yee, T. (2010), The VGAM Package for Categorical Data Analysis, Journal of 
+        Statistical Software, 32, 1–34.
+
+Example:
+    ## Generate a 4x4 wishart matrix with 10 degrees of freedom.
+        
+        rwishart(df = 10, p = 4)
+    '''
+    X = np.zeros(p*p)
+    shape = (p,p)
+    X = X.reshape(shape)
+    #X = pd.DataFrame(X)
+    #print(X.iloc[0][1])
+    chi2rvs = []
+    for i in range(p):
+        chi2rvs.append(np.sqrt(st.chi2.rvs(size = 1,df = df-i)))
+    np.fill_diagonal(X,chi2rvs)
+    if p > 1:
+        a = []
+        for i in range(1,p):
+            pseq = list(range(1,p))
+            a.extend(np.repeat(4*pseq[i-1], i))
+        # a is equivalent to rep(p*pseq,pseq)
+        #X = pd.DataFrame(X)
+        for i in range(p-1):
+            for j in range((p-1)-i):
+                X[i][j+1+i] = st.norm.rvs(size = 1)
+        X = np.dot(X.T,X)
+        return X
+    
+
+
 def mvregtolregion(mvreg, formI, df, names, newx = None, alpha = 0.05, P = 0.99, B = 1000):
     try:
         mvreg[0].params
@@ -17,6 +74,7 @@ def mvregtolregion(mvreg, formI, df, names, newx = None, alpha = 0.05, P = 0.99,
         return "mvreg must be an lm object"
     else:
         X = pd.DataFrame(patsy.dmatrix(formI))
+        xformulanames = formI.split("+")
         n = length(X.iloc[:,0])
         q = length(mvreg)
         yvars = names[:-1:1]
@@ -38,7 +96,7 @@ def mvregtolregion(mvreg, formI, df, names, newx = None, alpha = 0.05, P = 0.99,
         Pn = np.zeros(shape=(n,n)) + 1
         Pa = np.zeros(shape=(n,n))
         np.fill_diagonal(Pa,1)
-        Pa = Pa - (Pn/n)
+        Pn = Pa - (Pn/n)
         xvars = x.columns
         yhat = []
         for i in range(length(mvreg)):
@@ -50,17 +108,68 @@ def mvregtolregion(mvreg, formI, df, names, newx = None, alpha = 0.05, P = 0.99,
             newxy = pd.DataFrame(newxy.reshape([q,nn]).T)
             newxy = pd.concat([newxy, newx],axis=1)
             newxy.columns = names
+            yhatn = []
+            for i in range(length(yvars)):
+               yhatn.append(mvreg[i].predict(newx))
+            yhatn = pd.DataFrame(yhatn).T
+            yhatn.columns = yvars
+            yhat = pd.concat([yhat,yhatn])
+            yhat.index = range(length(yhat.iloc[:,0]))
+            newx = pd.DataFrame(patsy.dmatrix(formI,data=newxy)).iloc[:, 1:]
+        xall = pd.concat([x,newx])
+        xall.columns = xformulanames
+        xall.index = range(length(xall.iloc[:,0]))
+        N = length(xall.iloc[:,0])
+        A = np.linalg.inv(np.dot(np.dot(x.T,Pn),x))
+        d2 = []
+        # xall.iloc[0] == x.all[1,]
+        for i in range(N):
+            d2.append((1/n)+np.linalg.multi_dot([xall.iloc[i]-xbar,A,xall.iloc[i]-xbar]))
+        H2 = []
+        L = []
+        c1 = []
+        c2 = [] 
+        c3 = []
+        for i in range(B):
+            H2.append(np.array(st.chi2.rvs(size = int(N*q),df=1)).reshape([q,N]))
+            H2[i] = np.array([t*d2 for t in H2[i]])
+            L.append(np.array(np.linalg.eigvals(rwishart(fm,q))).T)
+            for j in range(length(L[0])):
+                if j == 0:
+                    tmpc1 = []
+                    tmpc2 = [] 
+                    tmpc3 = []
+                tmpc1.append((1+(1 * H2[i][j]**2)/(L[i][j]**1)))
+                tmpc2.append((1+(2 * H2[i][j]**2)/(L[i][j]**2)))
+                tmpc3.append((1+(3 * H2[i][j]**2)/(L[i][j]**3)))
+                if j == length(L[0])-1:
+                    c1.append(sum(tmpc1))
+                    c2.append(sum(tmpc2))
+                    c3.append(sum(tmpc3))
+        # tt = []
+        # L = np.expand_dims(L,axis=-1)
+        # for i in range(B):
+        #     tt.append(list(map(sum,(1+(1 * H2[i].T**2)/(L[i].T**1)))))
+        # print(tt)
+        a = np.array(c2)**3/np.array(c3)**2
+        Tall = []
+        a = pd.DataFrame(a)
+        c1 = pd.DataFrame(c1)
+        c2 = pd.DataFrame(c2)
+        c3 = pd.DataFrame(c3)
+        for i in range(N):
+            Tall.append((fm*(np.sqrt(c2.iloc[:,i])/a.iloc[:,i]) * (st.chi2.ppf(P, a.iloc[:,i]) - a.iloc[:,i]) + c1.iloc[:,i]))
+        k = list(map(lambda p: np.quantile(p,1-alpha),Tall))
+        k = pd.DataFrame(k)
+        tol = pd.concat([k,yhat,xall],axis =1)
         names = [n + '.hat' for n in names[0:-1]]
-        yhat.columns = names
         formI = formI.split("+")
-        x.columns = formI
-        return pd.concat([yhat,x],axis=1)
-            
-        
-        
-        
-
-
+        returncol = []
+        returncol.append('kfactor')
+        returncol.extend(names)
+        returncol.extend(formI)
+        tol.columns = returncol
+        return tol
 
 
 
@@ -91,13 +200,17 @@ for i in range(length(dfy.iloc[0])):
     formula = 'dfy.iloc[:,i] ~ ' + formula
     lm.append(ols(formula,data=df).fit())
 
+#print(lm[0].predict(newx))
+#print(lm[1].predict(newx))
+
+
 #lm1 = ols(formula, data = df).fit()
 #lm2 = ols(formula, data = df).fit()
 #y's on left, x on right
 names = ['grain','straw','fert']
 
-print("This file is a work in progress.\n")
-print(mvregtolregion(lm, formulaI,df, names,newx))
+print("Warning:\n kfactor needs to be fixed.\n")
+print(mvregtolregion(lm, formulaI,df, names,newx,alpha = 0.05))
 
 
 
