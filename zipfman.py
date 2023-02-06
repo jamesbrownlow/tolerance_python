@@ -627,7 +627,6 @@ Examples
 
 
     '''
-    ##WORK FROM HERE
     if N == None:
         return 'Must specify N.'
     if b == None and N < np.inf:
