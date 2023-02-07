@@ -118,7 +118,7 @@ Examples
         x[tmp] = maxx
         print("Numerical overflow problem when calculating log-density of some x values.  The problematic values are set to the maximum finite value calculated.")
     def llf(theta):
-        return -sum([sum((ddpareto(x,theta,log=True)))])
+        return -sum(((ddpareto(x,theta,log=True))))
     fit = opt.minimize(llf, x0 = theta, method = 'Nelder-Mead')['x']
     fit = pd.DataFrame(fit)
     fit.index = ['Coefficient']
