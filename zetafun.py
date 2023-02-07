@@ -52,7 +52,6 @@ Example
         ans.append(1/i**x[i%length(x)-1])
     ans = np.array(ans)
     ans = np.sum(ans)
-    print(ans)
     ans = ans + 1/((x - 1) * a**(x - 1)) + 1/(2 * a**x)
     term = (x/2)/a**(x + 1)
     ans = ans + term * B[0]
