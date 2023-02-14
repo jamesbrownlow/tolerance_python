@@ -108,7 +108,7 @@ Examples
 --------
     ## 85%/90% 1-sided Weibull tolerance intervals for a sample
     ## of size 150. 
-        x = numpy.random.weibull(size = 150, loc = 3, scale = 75)
+        x = -scipy.stats.weibull_max.rvs(size = 150, c = 3, scale = 75)
         exttolint(x, alpha = 0.15, P = 0.90, side = 1, dist = 'Weibull')
     '''
     if (side != 1 and side != 2): 
