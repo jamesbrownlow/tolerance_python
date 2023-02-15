@@ -1026,7 +1026,7 @@ Examples
         ax.plot_surface(x, y, z, color='r',alpha = 0.2)
         plt.show()
     elif y is not None and length(y) > 2 and formula is None and type(tolout) is not dict:
-        print("This only works when the forumula is a single linear model of he form y = b0 + b1*x")
+        print("This only works when the forumula is a single linear model of the form y = b0 + b1*x")
         plt.scatter(xdata,y,color = 'black', linewidths = 1)
         df = pd.concat([pd.DataFrame(xdata),pd.DataFrame(y)],axis=1)
         lm = ols('y~xdata',data=df).fit()
@@ -1136,7 +1136,7 @@ Examples
 # YLIM = nonlinregtolint(formula1, xydata=xy,alpha = 0.05, P = 0.99, side = 2)
 # plottol(YLIM,xdata=x,y=y,side=1,formula=formula1)
         
-# # #1D        
+# #1D        
 # xdata = np.random.normal(size = 100)
 # # Example tolerance dataframe
 # tol = pd.DataFrame([0.01, 0.95, 0.0006668252,-1.9643623,1.965696]).T
