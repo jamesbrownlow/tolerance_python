@@ -97,17 +97,15 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
-print(Kfactor(15,f=12,method = 'HE',side = 2,m=100, alpha = 0.02, P = 0.98))
-print(Kfactor(15,f=12,method = 'HE2',side = 2,m=100, alpha = 0.02, P = 0.98))
-print(Kfactor(15,f=12,method = 'WBE',side = 2,m=100, alpha = 0.02, P = 0.98))
-print(Kfactor(15,f=12,method = 'ELL',side = 2,m=100, alpha = 0.02, P = 0.98))
-print(Kfactor(15,f=12,method = 'KM',side = 2,m=100, alpha = 0.02, P = 0.98))
-print(Kfactor(15,f=12,method = 'EXACT',side = 2,m=100, alpha = 0.02, P = 0.98))
-print(Kfactor(15,f=12,method = 'OCT',side = 2,m=100, alpha = 0.02, P = 0.98))
+# print(Kfactor(15,f=12,method = 'HE',side = 2,m=100, alpha = 0.02, P = 0.98))
+# print(Kfactor(15,f=12,method = 'HE2',side = 2,m=100, alpha = 0.02, P = 0.98))
+# print(Kfactor(15,f=12,method = 'WBE',side = 2,m=100, alpha = 0.02, P = 0.98))
+# print(Kfactor(15,f=12,method = 'ELL',side = 2,m=100, alpha = 0.02, P = 0.98))
+# print(Kfactor(15,f=12,method = 'KM',side = 2,m=100, alpha = 0.02, P = 0.98))
+# print(Kfactor(15,f=12,method = 'EXACT',side = 2,m=100, alpha = 0.02, P = 0.98))
+# print(Kfactor(15,f=12,method = 'OCT',side = 2,m=100, alpha = 0.02, P = 0.98))
