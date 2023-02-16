@@ -1,18 +1,55 @@
 import numpy as np
-import scipy.stats
+import scipy.stats as st
 import pandas as pd
 import scipy.interpolate as interpolate
 import math
 import scipy.optimize as opt
+from scipy.optimize import curve_fit
+import scipy.odr
+from statsmodels.formula.api import ols
 #need dpareto.R
 def length(x):
     if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
         return 1
     return len(x)
 
+def qdpareto(p, theta, lowertail = True, logp = False):
+    if length(p) > 1:
+        p = np.array(p)
+    if (theta <= 0 or theta>=1):
+        return "theta must be between 0 and 1!"
+    if(logp): 
+        p = np.exp(p)
+    if not lowertail:
+        p = 1-p
+    allp = []
+    for i in range(length(p)):
+        if p < 1 and p > 0:
+            if length(p) == 1:
+                allp.append(max(np.floor(np.exp(np.log(1-p)/np.log(theta))-2),0))
+                break
+            allp.append(max(np.floor(np.exp(np.log(1-p[i])/np.log(theta))-2),0))
+        elif p == 1:
+            allp.append(np.inf)
+        elif p == 0:
+            allp.append(0)
+        else:
+            allp.append(np.nan)
+    allp = np.array(allp)
+    #print(np.where(p==1))
+    #allp[np.where(allp==1)] = np.inf
+    #allp[np.where(allp==0)] = 0
+    #allp[np.where(allp>1) or np.where(allp<0)] = np.nan
+    if any(allp == None):
+        print("NaNs produced")
+    return allp
+
 def ddpareto(x,theta,log=False):
     if theta <= 0 or theta >= 1:
-        return('theta must be between 0 and 1')
+        if theta <=0:
+            theta = 0
+        else:
+            theta = 1
     n = [np.where(y < 0) for y in x]    
     temp = []
     for i in range(len(n)):
@@ -84,7 +121,7 @@ Examples
     
     dparetoll(x=[1,4,2,5,6,2,4,7,3,2],theta = 0.2)
     '''
-    if theta != None:
+    if theta is not None:
         if theta >= 1 or theta <= 0:
             return 'theta must be between 0 and 1. '
     thtable = pd.DataFrame({'0':[0,0.050,0.089,0.126,0.164,0.203,0.244,0.286,0.332,0.380,
@@ -99,10 +136,10 @@ Examples
             x[inftest[i]] = np.max(x[noinf])
         print("Values of x equal to 'Inf' are set to the maximum finite value.")
     xbar = np.mean(x)
-    if theta == None:
+    if theta is None:
         if xbar <= max(thtable['0']):
             ind = np.max(np.where(thtable['0']<xbar))
-            y= interpolate.interp1d(np.array(thtable.iloc[ind:ind+2]['0']), np.array(thtable.iloc[ind:ind+2]['1']))
+            y = interpolate.interp1d(np.array(thtable.iloc[ind:ind+2]['0']), np.array(thtable.iloc[ind:ind+2]['1']))
             theta = y(xbar)
         else:
             Shat = np.array(pd.DataFrame([np.mean(x>=x[i]) for i in range(len(x))]))
@@ -118,14 +155,13 @@ Examples
         x[tmp] = maxx
         print("Numerical overflow problem when calculating log-density of some x values.  The problematic values are set to the maximum finite value calculated.")
     def llf(theta):
-        return -sum(((ddpareto(x,theta,log=True))))
-    fit = opt.minimize(llf, x0 = theta, method = 'Nelder-Mead')['x']
+        return -sum(ddpareto(x,theta,log=True))
+    fit = opt.minimize(llf, x0 = theta, method = 'BFGS')['x']
     fit = pd.DataFrame(fit)
     fit.index = ['Coefficient']
     fit.columns = ['theta']
     return fit
 
-#print(ddpareto(x=[-1,2,3,0,-12,12,45,3,1,2,43,53,23,5,35,3,43,4,64,53,4,34,243,2,32,42,5,46,45,32,4,42,44,24,21,55,-99],theta = 0.7))
-#dparetoll(x=[1,np.inf,2,3,4,5,999,np.inf,239,24,65,12,4,53,64,7,68,6,85,47,435,3,43,5,46,45,7,48,549,59,67,97,np.inf,23,465,46,6,5,75,86])
-#print(dparetoll(x=[1,3,4,5,999,239,24,65,12,4,53,64,7,68,6,85,47,435,3,43,5,46,45,7,48,549,59,67,97,23,465,46,6,5,75,86]))
-#print(dparetoll(x=[1,4,2,5,6,2,4,7,3,2]))
+# print(dparetoll(x=[0,1,0,4,0,1,0,0,1,0,1]))
+    
+# print(dparetoll(x=[0,1,0,4,0,1,0,0,1,0,1],theta = 0.9))
