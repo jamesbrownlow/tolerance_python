@@ -6,6 +6,8 @@ import pandas as pd
 import sympy as sym
 from scipy.misc import derivative
 import scipy.optimize as opt
+import warnings
+warnings.filterwarnings('ignore')
 
 def length(x):
     if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
