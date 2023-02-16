@@ -5,16 +5,9 @@ import scipy.integrate as integrate
 import scipy.optimize as opt
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
-
-import scipy.stats
-import numpy as np
-#import pandas as pd
-import scipy.integrate as integrate
-#import statistics as st
 import warnings
 warnings.filterwarnings('ignore')
 
-import scipy.optimize as opt
 
 def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
     K=None
@@ -72,8 +65,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             
             elif method == 'ELL':
                 if f < n**2:
-                    print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
+                    print("Warning Message:\nThe ellison method should only be used for f appreciably larger than n^2")
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -92,11 +84,11 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m)
+                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
+                K = opt.minimize(fun=Fun3, x0=k2,args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
@@ -106,10 +98,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
@@ -342,6 +332,8 @@ Note for When Using
         print(f'These are {(1-alpha)*100}%/{P*100}% {side}-sided tolerance limits.')
     else:
         print(f'These are {(1-alpha)*100}%/{P*100}% {side}-sided tolerance intervals.')
+    for i in range(length(outlist)):
+        outlist[i] = outlist[i].sort_values(by=['mean'],ascending = False)
     fin = [[i[0] for i in xlev], [a for a in outlist]]
     st = ''
     for i in range(len(fin[1])):
@@ -357,12 +349,12 @@ Note for When Using
 # ##############
 # #response variable y must be the leftmost object in the dataframe, the first entered
 # #creating an lm object, 2 steps
-#  # 1.) make a dataframe (df)
-#  # 2.) lm_object: lm('y ~ x*', data = df) == ols('y ~ x*', data = df).fit()
+#   # 1.) make a dataframe (df)
+#   # 2.) lm_object: lm('y ~ x*', data = df) == ols('y ~ x*', data = df).fit()
 
 # #data MUST be entered with response being first in lm and dataframe (on the leftmost)
 # #it should only have a format with the y and x's being in their place below
 # # ols(y ~ ax + bx + cx + ... + x*, data = df).fit()
 # warpbreaks = pd.DataFrame({'breaks':breaks,'wool':wool,'tension':tension})
 # lmout = ols('breaks ~ wool + tension',warpbreaks).fit()
-# print(anovatolint(lmout, data = warpbreaks, alpha = 0.10, P = 0.95, side = 2, method = "HE"))
+# print(anovatolint(lmout, data = warpbreaks, alpha = 0.10, P = 0.95, side = 2, method = "OCT"))
