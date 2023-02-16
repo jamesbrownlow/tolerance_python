@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as st
-
+import scipy.optimize as opt
+import pandas as pd
 
 def length(x=None):
     try:
@@ -14,36 +15,26 @@ def length(x=None):
 def dpoislind(x, theta, log = False):
     '''
 Discrete Poisson-Lindley Distribution
-
 Description
     Density (mass) for the Poisson-Lindley distribution.
-
 Usage
     dpoislind(x, theta, log = False)
     
 Parameters
 ----------
-
     x: list	
         Vector of quantiles.
-
     theta: float	
         The shape parameter, which must be greater than 0.
-
     log: bool
         Logical vectors. If True, then the probabilities are given as log(p).
-
 Details
     The Poisson-Lindley distribution has mass
-
         p(x) = (θ^2(x + θ + 2))/(θ + 1)^(x+3),
-
     where x=0,1,… and θ>0 is the shape parameter.
-
 Returns
 -------
     dpoislind gives the density (mass) for the specified distribution.
-
 References
     Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance 
         Intervals. Journal of Statistical Software, 36(5), 1-39. 
@@ -52,7 +43,6 @@ References
     Ghitany, M. E. and Al-Mutairi, D. K. (2009), Estimation Methods for the 
         Discrete Poisson-Lindley Distribution, Journal of Statistical 
         Computation and Simulation, 79, 1–9.
-
     Sankaran, M. (1970), The Discrete Poisson-Lindley Distribution, Biometrics,
         26, 145–149.
 Examples
@@ -75,39 +65,28 @@ Examples
 def ppoislind(q, theta, lowertail = True, logp = False):
     '''
 Discrete Poisson-Lindley Distribution
-
 Description
     Distribution function for the Poisson-Lindley distribution.
-
 Usage
     ppoislind(q, theta, lowertail = True, logp = False)
     
 Parameters
 ----------
-
     q: list
         Vector of quantiles.
-
     theta: float	
         The shape parameter, which must be greater than 0.
-
     logp: bool
         Logical vectors. If True, then the probabilities are given as log(p).
-
     lowertail: bool	
         Logical vector. If True, then probabilities are P[X≤ x], else P[X>x].
-
 Details
     The Poisson-Lindley distribution has mass
-
         p(x) = (θ^2(x + θ + 2))/(θ + 1)^(x+3),
-
     where x=0,1,… and θ>0 is the shape parameter.
-
 Returns
 -------
     ppoislind gives the distribution function for the specified distribution.
-
 References
     Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance 
         Intervals. Journal of Statistical Software, 36(5), 1-39. 
@@ -116,14 +95,12 @@ References
     Ghitany, M. E. and Al-Mutairi, D. K. (2009), Estimation Methods for the 
         Discrete Poisson-Lindley Distribution, Journal of Statistical 
         Computation and Simulation, 79, 1–9.
-
     Sankaran, M. (1970), The Discrete Poisson-Lindley Distribution, Biometrics,
         26, 145–149.
 Examples
 --------
     ppoislind(q = [-3,-2,-2,1,-1,0,1,1,1,2,2,3,1,-1], theta = 0.5,
               lowertail=False)
-
     '''
     if theta <= 0:
         return "theta must be positive!"
@@ -152,10 +129,8 @@ Examples
 def qpoislind(p, theta, lowertail = True, logp = False):
     '''
     Discrete Poisson-Lindley Distribution
-
 Description
     Quantile function, and random for the Poisson-Lindley distribution.
-
 Usage
     qpoislind(p, theta, lowertail = True, logp = False)
     
@@ -163,27 +138,19 @@ Parameters
 ----------
     p: list
         Vector of probabilities.
-
     theta: float
         The shape parameter, which must be greater than 0.
-
     logp: bool
         Logical vectors. If True, then the probabilities are given as log(p).
-
     lowertail: bool	
         Logical vector. If True, then probabilities are P[X≤ x], else P[X>x].
-
 Details
     The Poisson-Lindley distribution has mass
-
         p(x) = (θ^2(x + θ + 2))/(θ + 1)^(x+3),
-
     where x=0,1,… and θ>0 is the shape parameter.
-
 Returns
 -------
     qpoislind gives the quantile function for the specified distribution.
-
 References
     Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance 
         Intervals. Journal of Statistical Software, 36(5), 1-39. 
@@ -192,7 +159,6 @@ References
     Ghitany, M. E. and Al-Mutairi, D. K. (2009), Estimation Methods for the 
         Discrete Poisson-Lindley Distribution, Journal of Statistical 
         Computation and Simulation, 79, 1–9.
-
     Sankaran, M. (1970), The Discrete Poisson-Lindley Distribution, Biometrics,
         26, 145–149.
 Examples
@@ -258,33 +224,25 @@ Examples
 def rpoislind(n, theta):
     '''
 Discrete Poisson-Lindley Distribution
-
 Description
     Random generation for the Poisson-Lindley distribution.
-
 Usage
     rpoislind(n, theta)
     
 Parameters
 ----------
     n: int
-        The number of observations. If length>1, then the sum of n\'s is used
+        The number of observations. If length>1, then the length of n is used
         in place of n.
-
     theta: float
         The shape parameter, which must be greater than 0.
-
 Details
     The Poisson-Lindley distribution has mass
-
         p(x) = (θ^2(x + θ + 2))/(θ + 1)^(x+3),
-
     where x=0,1,… and θ>0 is the shape parameter.
-
 Returns
 -------
     rpoislind generates random deviates for the specified distribution.
-
 References
     Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance 
         Intervals. Journal of Statistical Software, 36(5), 1-39. 
@@ -293,19 +251,17 @@ References
     Ghitany, M. E. and Al-Mutairi, D. K. (2009), Estimation Methods for the 
         Discrete Poisson-Lindley Distribution, Journal of Statistical 
         Computation and Simulation, 79, 1–9.
-
     Sankaran, M. (1970), The Discrete Poisson-Lindley Distribution, Biometrics,
         26, 145–149.
 Examples
 --------
     rpoislind(n = 150, theta = 0.5)
     rpoislind(n = [4,6], theta = 0.5)
-
     '''
     if theta <= 0:
         return "theta must be positive!"
     if length(n) > 1:
-        n = sum(n)
+        n = len(n)
     u = st.uniform.rvs(size = n)
     p = theta/(theta+1)
     ind = u > p 
@@ -313,10 +269,10 @@ Examples
     out = st.poisson.rvs(lamb, size = n)
     return out
 
-#print(rpoislind(n = 6, theta = 0.5))
+# print(rpoislind(n = 6, theta = 0.5))
 
-#print(qpoislind(p = .2,theta = 0.5,lowertail=(False)))
-#print(qpoislind(p = [0.80,.2,1,0,1.1,-1,-2,.5,.9999,.9,0,1,-1,0,.32,1,3], theta = 0.5,lowertail = True))
+# print(qpoislind(p = .2,theta = 0.5,lowertail=(False)))
+# print(qpoislind(p = [0.80,.2,1,0,1.1,-1,-2,.5,.9999,.9,0,1,-1,0,.32,1,3], theta = 0.5,lowertail = True))
 
-#print(ppoislind(q = [-3,-2,-2,1,-1,0,1,1,1,2,2,3,1,-1], theta = 0.5,lowertail=False))
-#print(dpoislind(x=[-3,-2,-2,1,-1,0,1,1,1,2,2,3,1], theta = 0.5))
+# print(ppoislind(q = [-3,-2,-2,1,-1,0,1,1,1,2,2,3,1,-1], theta = 0.5,lowertail=False))
+# print(dpoislind(x=[-3,-2,-2,1,-1,0,1,1,1,2,2,3,1], theta = 0.5))
