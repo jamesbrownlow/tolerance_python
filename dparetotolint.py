@@ -39,7 +39,10 @@ def qdpareto(p, theta, lowertail = True, logp = False):
 
 def ddpareto(x,theta,log=False):
     if theta <= 0 or theta >= 1:
-        return('theta must be between 0 and 1')
+        if theta <=0:
+            theta = 0
+        else:
+            theta = 1
     n = [np.where(y < 0) for y in x]    
     temp = []
     for i in range(len(n)):
@@ -237,7 +240,7 @@ Examples
     
         x = [0,2,0,0,0,7,0,3,16,1,2,4,3,5,8,1,11,37,2,1,5,7,9,1,100,15,3,7,8]
         
-        dparetotolint(x, alpha = 0.05, P = 0.95, side = 1)
+        dparetotolint(x, m=1000, alpha = 0.05, P = 0.95, side = 1)
     '''
     if side != 1 and side != 2:
         return "Must specify a one-sided or two-sided procedure!"
@@ -272,6 +275,5 @@ Examples
         temp.columns = ["alpha", "P", "theta", "2-sided.lower", "2-sided.upper"]
     return temp
     
-
 
 
