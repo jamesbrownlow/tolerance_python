@@ -6,6 +6,7 @@ import scipy.integrate as integrate
 import warnings
 from math import sqrt
 import statistics
+import time
 warnings.filterwarnings('ignore')
 
 def length(x):
@@ -90,12 +91,13 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
+                    return integrate.quad(Fun1, a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
-                return float(K)
+                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'COBYLA')['x'] #COBYLA and SLSQP are quicker THAN L-BFGS-B
+                print(K)
+                return K
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
                     k = (scipy.stats.chi2.sf(df1*scipy.stats.ncx2.ppf(P,1,z**2)/X**2,df=df1)*np.exp(-0.5*n*z**2))
@@ -578,7 +580,6 @@ Examples
             return specU - (mu+Kfactor(n=n,alpha=alpha,P=P,side=side,method='OCT',m=m)*sigma)
         def f2(n,mu,sigma,alpha,P,side,specL):   
             return (mu-Kfactor(n=n,alpha=alpha,P=P,side=side,method='OCT',m=m)*sigma)-specL
-
         if side == 1:
             if specL == None:
                 try:
@@ -807,7 +808,7 @@ Examples
     return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':[int(n)]})
 
 
-print(normss(alpha = 0.05, P = 0.95, side = 2, spec = [-4,4],method = 'DIR', mu0 = 1, sig20 = 1.1,m0=12,n0=30, delta = .62, Pprime = .998,fast = True))
+#print(normss(alpha = 0.05, P = 0.99, side = 2, spec = [-3,3],method = 'DIR', mu0 = 0, sig20 = 1,fast = False))
 
 
 
