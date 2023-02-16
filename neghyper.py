@@ -265,6 +265,11 @@ Examples
                 allp.append(min(tempout[tempout['']>=p]['temp']))
         else:
                 allp.append(min(tempout[tempout['']<p]['temp']))
+    if length(allp) == 1:
+        try:
+            return allp[0]
+        except:
+            return allp
     return allp
 
 def rnhyper(nn, m, n, k):
@@ -326,6 +331,18 @@ Examples
         return 'k cannot be larger than m.'
     return qnhyper(np.random.uniform(size = nn),m,n,k)
 
+#x = rnhyper(nn = 1000, m = 15, n = 40, k = 10)
+# #x = sorted(x)
+# x = [.01,.1,.5,.7,.9,.99]
+# print(dnhyper(x = x, m = 15, n = 40, k = 10))
+
+# #x = rnhyper(nn = 1000, m = 15, n = 40, k = 10)
+# #x = sorted(x)
+
+# print(pnhyper(q = x, m = 15, n = 40, k = 10))
+# print(qnhyper(p = 0.80, m = 15, n = 40, k = 10))
+# x = rnhyper(nn = 1000, m = 15, n = 40, k = 10)
+# print(x)
 
 #print(qnhyper(p = [0.8,0.9], m = 15, n = 40, k = 10,lowertail=True))
 #print(rnhyper(nn=10, m = 15, n = 40, k = 10))
