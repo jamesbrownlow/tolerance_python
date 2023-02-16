@@ -1,4 +1,6 @@
 import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
 
 def length(x):
     if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
@@ -59,4 +61,5 @@ Example
         term = term * (x + 2 * mm - 2) * (x + 2 * mm - 3)/(a * a * 2 * mm * (2 * mm - 1))
         ans = ans + term * B[mm]
     return ans
+
 
