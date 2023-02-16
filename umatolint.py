@@ -132,6 +132,8 @@ Examples
             else:
                 temp = 1
         phat = (y/n)/N
+        if k < 1:
+            print("upper is less than 1, error, results are invalid.")
         return pd.DataFrame({'alpha':[alpha],'P':[P],'p.hat':[phat],'1-sided.upper':k})
     if dist == 'NegBin':
         if y > 0:
@@ -162,4 +164,3 @@ Examples
         lambdahat = y/n
         return pd.DataFrame({'alpha':[alpha],'P':[P],'nu.hat':[lambdahat],'1-sided.upper':k})
     
-umato
