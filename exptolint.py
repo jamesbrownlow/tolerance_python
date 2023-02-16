@@ -81,7 +81,6 @@ Examples
         alpha = alpha/2
     n = len(x)
     lhat = np.mean(x)
-    lhat = 224.565
     if type2:
         mx = max(x)
         r = n - np.sum(x == mx)
