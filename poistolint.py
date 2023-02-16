@@ -4,9 +4,10 @@ import scipy.stats
 
 def poistolint(x, n, m = None, alpha = 0.05, P = 0.99, side = 1, method ='TAB'):
     '''
-------------------------------------------------------------------------------
+Poisson Tolerance Intervals
     
-poistolint(x, n, m = None, alpha = 0.05, P = 0.99, side = 1, method = ["TAB", "LS", "SC", "CC", "VS", "RVS","FT", "CSC"])
+poistolint(x, n, m = None, alpha = 0.05, P = 0.99, side = 1, method = 
+           ["TAB", "LS", "SC", "CC", "VS", "RVS","FT", "CSC"])
 
 Description
     Provides 1-sided or 2-sided tolerance intervals for Poisson random 
@@ -15,7 +16,7 @@ Description
     in a specified future time period.
 
 Parameters
-    ----------
+----------
     x: int, float, or list
         The number of occurrences of the event in time period n. Can be a 
         vector of length n, in which case the sum of x is used.
@@ -163,3 +164,21 @@ Examples
         return pd.DataFrame({"alpha":[alpha], "P":[P], "lambda.hat":[x/n], "2-sided.lower":lower, "2-sided.upper":upper})
     else:
         return pd.DataFrame({"alpha":[alpha], "P":[P], "lambda.hat":[x/n], "1-sided.lower":lower, "1-sided.upper":upper})
+    
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "TAB"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "LS"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "SC"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "CC"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "VS"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "RVS"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "FT"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 1, method = "CSC"))
+
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "TAB"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "LS"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "SC"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "CC"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "VS"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "RVS"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "FT"))
+# print(poistolint(x = 45, n = 9, m = 15, alpha = 0.05, P = 0.90, side = 2, method = "CSC"))
