@@ -232,7 +232,7 @@ Usage
 Parameters
 ----------
     n: int
-        The number of observations. If length>1, then the sum of n\'s is used
+        The number of observations. If length>1, then the length of n is used
         in place of n.
     theta: float
         The shape parameter, which must be greater than 0.
@@ -261,7 +261,7 @@ Examples
     if theta <= 0:
         return "theta must be positive!"
     if length(n) > 1:
-        n = sum(n)
+        n = len(n)
     u = st.uniform.rvs(size = n)
     p = theta/(theta+1)
     ind = u > p 
@@ -344,12 +344,23 @@ Examples
     try:
         s = opt.minimize(llf, x0=theta, method = 'BFGS')['x']
         vcov = opt.minimize(llf, x0=theta, method = 'BFGS')['hess_inv'].ravel()
-        fit = pd.DataFrame({'s':s,'vcov':vcov})
+        fit = pd.DataFrame({'theta':s,'vcov':vcov})
     except:
         try:
             s = opt.minimize(llf, x0=theta*0.8, method = 'BFGS')['x']
             vcov = opt.minimize(llf, x0=theta*0.8, method = 'BFGS')['hess_inv'].ravel()
-            fit = pd.DataFrame({'s':s,'vcov':vcov})
+            fit = pd.DataFrame({'theta':s,'vcov':vcov})
         except:
             return "Difficulty optimizing the MLE -- must try a different starting value for theta."
     return fit
+
+print(dpoislind(x=[-3,-2,-2,1,-1,0,1,1,1,2,2,3,1], theta = 0.5))
+
+print(qpoislind(p = .2,theta = 0.5,lowertail=True))
+print(qpoislind(p = [0.80,.2,1,0,1.1,-1,-2,.5,.9999,.9,0,1,-1,0,.32,1,3], theta = 0.5,lowertail = False))
+
+print(rpoislind(n = 150, theta = 0.5))
+print(rpoislind(n = [4,6], theta = 0.5))
+
+Pdata = [2,1,3,2,0,11,9,0,0,0]        
+print(poislindll(x = Pdata))
