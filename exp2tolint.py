@@ -81,9 +81,11 @@ References
             
 Examples
 --------
-        ## 95%/90% 1-sided 2-parameter exponential tolerance intervals for a sample of size 50. 
+    ## 95%/90% 1-sided 2-parameter exponential tolerance intervals for a sample of size 50. 
+        x = np.random.exponential(226,size = 50)
         
-        exp2tol.int(x = x, alpha = 0.05, P = 0.90, side = 1, method = "DUN", type.2 = FALSE)
+        exp2tolint(x = x, alpha = 0.05, P = 0.90, side = 1, method = "DUN", type2 = False)
+        
     '''
     if side != 1 and side != 2:
         return 'Must specify a one-sided or two-sided procedure'
@@ -95,7 +97,7 @@ Examples
     S = sum([y-T for y in x]) 
     if type2:
         mx = max(x)
-        r = n - x.count(mx)
+        r = n - list(x).count(mx)
         def m(P,R,n):
             return (1+n*np.log(P))/(r-(5/2))
         k1 = (-m(P,r,n)-scipy.stats.norm.ppf(1-alpha)*np.sqrt(m(P,r,n)**2/r+(1/r**2)))/n
@@ -118,3 +120,14 @@ Examples
     else:
         temp = pd.DataFrame({'alpha':[alpha],'P':[P],'1-sided.lower':[lower],'1-sided.upper':[upper]})
     return temp
+
+#x = [200.47317759 ,515.27543654 ,502.01117096 ,382.37767967  , 8.26017642,265.97233374 ,107.55578385 ,165.17702228, 242.45339628,  48.69977269]
+
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 1, method = "DUN", type2 = True))
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 1, method = "DUN", type2 = False))
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 2, method = "DUN", type2 = True))
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 2, method = "DUN", type2 = False))
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 1, method = "KM", type2 = True))
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 1, method = "KM", type2 = False))
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 2, method = "KM", type2 = True))
+# print(exp2tolint(x = x, alpha = 0.05, P = 0.9, side = 2, method = "KM", type2 = False))
