@@ -80,7 +80,7 @@ Examples
     100. 
         
         x = [12,32,45,5,35,34,23,1,24,56,6,5,57,5,43,35,2,36,547,57]
-        npbetol.int(x = x, Beta = 0.90, side = 2)
+        npbetolint(x = x, Beta = 0.90, side = 2)
 
     '''
     n = length(x)
@@ -100,4 +100,5 @@ Examples
             lower = x[int(ne2-1)]
         return pd.DataFrame({'beta':[Beta],'2-sided.lower':lower,'2-sided.upper':upper})
     
-npbet
+# x = np.random.exponential(1/5,size = 100)
+# print(npbetolint(x = x, Beta = 0.9, side = 2))
