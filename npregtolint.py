@@ -426,7 +426,6 @@ Examples
                     v1 = [np.floor(diff/2), np.ceil(diff/2)] #list
                     v2 = [sum(x) for x in zip(v1, [1,-1])] #add v1 to [1,-1] element-wise
                 if type(v1) == list:
-                    #%%
                     #you can make this block more effient
                     data = {'v1': [v1[0]], 'v2*': [n- v2[0] +1]}
                     HM = pd.DataFrame(data = data)
@@ -438,7 +437,6 @@ Examples
                     for i in range(1,len(HM)):
                         d.loc[len(d.index)] = [alpha,P,xsort[int(HM.loc[i][0])],xsort[int(HM.loc[i][1]-1)]]    
                     temp = d
-                    #%%
                 else:
                     data = {'v1': [v1], 'v2*': [n-v2+1]}
                     HM = pd.DataFrame(data = data)
@@ -785,4 +783,21 @@ Examples
         outtemp.append(temp)
     if length(outtemp) == 1:
         outtemp = outtemp[0]
-    return outtemp
+    return outtemp.sort_values(by=['yhat'],ascending=True)
+# x = np.array([5,10,12,7,40,27,12,30,22,32,44,9,17,25,33,12])
+
+# def f(x):
+#     return x**(1.2345)
+
+# y = f(x) + scipy.stats.norm.rvs(size = 16, scale = 3)
+
+# loess = Loess(x,y)
+
+# yhat = []
+
+# for a in x:
+    
+#     yhat.append(loess.estimate(a, window = 8, use_matrix = False, 
+#                                 degree = 2))
+
+# print(npregtolint(x, y, yhat))
