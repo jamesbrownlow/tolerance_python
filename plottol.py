@@ -461,8 +461,9 @@ Note for When Using
         print(f'These are {(1-alpha)*100}%/{P*100}% {side}-sided tolerance limits.')
     else:
         print(f'These are {(1-alpha)*100}%/{P*100}% {side}-sided tolerance intervals.')
-    fin = [[i[0] for i in xlev], [a for a in outlist]]
-    st = ''         
+    for i in range(length(outlist)):
+        outlist[i] = outlist[i].sort_values(by=['mean'],ascending = False)
+    fin = [[i[0] for i in xlev], [a for a in outlist]]      
     return dict(zip(fin[0],fin[1]))
    #for i in range(len(fin[1])):
     #    st += f'{fin[0][i]}\n{fin[1][i]}\n\n'
