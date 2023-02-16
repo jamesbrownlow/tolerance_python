@@ -5,7 +5,7 @@ import scipy.optimize as opt
 
 def nporder(m, alpha = 0.05, P = 0.99, indices = False):
     '''
-    Sample Size Determination for Tolerance Limits Based on Order Statistics
+Sample Size Determination for Tolerance Limits Based on Order Statistics
 
 Description
     For given values of m, alpha, and P, this function solves the necessary 
@@ -74,11 +74,11 @@ Examples
 --------
     ## Only requesting the sample size.
 
-        np.order(m = 5, alpha = 0.05, P = 0.95)
+        nporder(m = 5, alpha = 0.05, P = 0.95)
 
     ## Requesting the order statistics indices as well.
 
-        np.order(m = 5, alpha = 0.05, P = 0.95, indices = TRUE)
+        nporder(m = 5, alpha = 0.05, P = 0.95, indices = True)
     '''
     def f(n, m, alpha, P):
         return st.beta.cdf(1-P, m, n-m+1)-(1-alpha)
@@ -87,7 +87,7 @@ Examples
         return f'Sample size needed: {int(n)}'
     else:
         ind = list([0])
-        ind = pd.DataFrame({'0': ind[0], '1': [n-(m-0)+2]})
+        ind = pd.DataFrame({'0': ind[0]+1, '1': [n-(m-0)+2]})
         for i in range(1,m-1):
-            ind.loc[len(ind.index)] = [i,n-(m-i)+2]
+            ind.loc[len(ind.index)] = [i+1,n-(m-i)+2]
         return f'Sample size needed: {int(n)} \n\nOrder statistics\n{ind}'
