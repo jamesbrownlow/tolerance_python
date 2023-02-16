@@ -64,8 +64,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             
             elif method == 'ELL':
                 if f < n**2:
-                    print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
+                    print("Warning Message:\nThe ellison method should only be used for f appreciably larger than n^2")
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -84,11 +83,11 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m)
+                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
+                K = opt.minimize(fun=Fun3, x0=k2,args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
@@ -105,4 +104,10 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
-print(Kfactor(15,method = 'EXACT',side = 2))
+print(Kfactor(15,f=12,method = 'HE',side = 2,m=100, alpha = 0.02, P = 0.98))
+print(Kfactor(15,f=12,method = 'HE2',side = 2,m=100, alpha = 0.02, P = 0.98))
+print(Kfactor(15,f=12,method = 'WBE',side = 2,m=100, alpha = 0.02, P = 0.98))
+print(Kfactor(15,f=12,method = 'ELL',side = 2,m=100, alpha = 0.02, P = 0.98))
+print(Kfactor(15,f=12,method = 'KM',side = 2,m=100, alpha = 0.02, P = 0.98))
+print(Kfactor(15,f=12,method = 'EXACT',side = 2,m=100, alpha = 0.02, P = 0.98))
+print(Kfactor(15,f=12,method = 'OCT',side = 2,m=100, alpha = 0.02, P = 0.98))
