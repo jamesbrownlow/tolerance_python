@@ -96,6 +96,10 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
                 K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'COBYLA')['x'] #COBYLA and SLSQP are quicker THAN L-BFGS-B
+                try:
+                    K = K[0]
+                except:
+                    K = K
                 print(K)
                 return K
             elif method == 'EXACT':
@@ -564,11 +568,11 @@ Examples
     '''
     if side != 1 and side != 2:
         return "Must specify a one-sided or two-sided procedure."
-    if spec[0] == None:
+    if spec[0] is None:
         specL = None
     else:
         specL = spec[0]
-    if spec[1] == None:
+    if spec[1] is None:
         specU = None
     else:
         specU = spec[1]
@@ -607,7 +611,6 @@ Examples
                 dU = abs(mu0-specU)
             except:
                 return 'The function must have the argument spec, a vector of length 2, inputted.'
-            
             try:
                 if dL <= dU:
                     fcalc = f2(2,mu0,s0,alpha,P,1,specL)
@@ -623,13 +626,16 @@ Examples
             else:
                 TI01 = mu0 -1*Kfactor(n=1e100,alpha=alpha,P=P,side=2,method='HE')*s0
                 TI02 = mu0 +1*Kfactor(n=1e100,alpha=alpha,P=P,side=2,method='HE')*s0
+
                 if (TI01 <= specL or TI02 >= specU):
                     n = np.inf
                 else:
-                    withinspec=[False]
+                    withinspec = 0
                     newn=n
+                    #def TITest(x,L,U):
+                    #    return [x[0].any()>=L and x[1].any()<=U]
                     def TITest(x,L,U):
-                        return [x[0].any()>=L and x[1].any()<=U]
+                        return x[0]>=L and x[1]<=U
                     inc = 1
                     while(np.sum(withinspec)==0 and n < np.inf):
                         newn = int(newn)
@@ -642,7 +648,11 @@ Examples
                                 K2[i] = Kfactor(n = newn[i], alpha = alpha, P = P, side = 2, method = 'HE')
                         TI1 = mu0 - K2*s0
                         TI2 = mu0 + K2*s0
-                        withinspec.extend(TITest(x=[TI1,TI2],L=specL,U=specU))
+                        TI = np.array([TI1,TI2])
+                        if inc == 1:
+                            withinspec = np.zeros(length(TI[0]))
+                        for i in range(length(TI[0])):
+                            withinspec[i] = TITest(x=TI.T[i],L=specL,U=specU)
                         if sum(withinspec) == 0:
                             newn = newn[-1]+1
                         else:
@@ -810,7 +820,15 @@ Examples
 
 #print(normss(alpha = 0.05, P = 0.99, side = 2, spec = [-3,3],method = 'DIR', mu0 = 0, sig20 = 1,fast = False))
 
-
+# def TITest(x,L,U):
+#     print(x[0])
+#     return x[0]>=L and x[1]<=U
+# specL = 1
+# specU = 2
+# TI = np.array([[3,2.8,2.5],[-3,-2.8,-2.5]])
+# withinspec = np.zeros(length(TI[0]))
+# for i in range(length(TI[0])):
+#     withinspec[i] = TITest(x=TI.T[i],L=specL,U=specU)
 
 
 
