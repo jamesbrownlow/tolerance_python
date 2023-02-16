@@ -180,8 +180,6 @@ Examples
         return 'x must be 0, a postive integer, or a vector of length n.'
     if length(x) == n:
         x = sum(x)
-    #xi = x
-    #x = np.array(x)
     nuhat = n/(n + x)
     nutilde = (n - 1)/(n + x - 1)
     za = st.norm.ppf(1 - alpha)
@@ -190,13 +188,8 @@ Examples
         maxtemp1 = np.max(nuhat-za*senuhat)
         mintemp2 = np.min(nuhat+za*senuhat)
         lowernu = max(1e-7, maxtemp1)
-        uppernu = min(mintemp2, 0.9999999) #if error in future, change 1 to 0.9999999
+        uppernu = min(mintemp2, 0.9999999)
     elif method == 'WU':
-        # if length(xi) > 1:
-        #     for i in range(length(xi)):
-        #         if xi[i]+n <= 2:
-        #             return 'Bounds are not defined for this option. x+n <= 2'
-        # else:
         if x+n <= 2:
             return 'Bounds are not defined for this option. x+n <= 2'
         TEMP1 = nutilde - 1*za*np.sqrt(nutilde *(1-nutilde)/(n+x-2))
@@ -221,34 +214,17 @@ Examples
         uppernu = min(TEMP2,0.9999999) #changed 1 to 0.9999999, round error was causing an issue
         
     elif method == 'LR':
-        # if length(xi) > 1:
-        #     uppernu = []
-        #     lowernu = []
         def funl(p, x, n, nuhat, alpha):
             return 2*(np.log(st.nbinom.pmf(x,n,nuhat))-np.log(st.nbinom.pmf(x,n,p)))-st.chi2.ppf(1-alpha,1)
         try:
-            # if length(xi) >1:
-            #     for i in range(length(xi)):
-            #         lowernu.append((opt.brentq(funl, a = 1e-12, b = nuhat[i], args=(x[i],n,nuhat[i],alpha), maxiter = 100000)))
-            # else:
             lowernu = opt.brentq(funl, a = 1e-12, b = nuhat, args=(x,n,nuhat,alpha), maxiter = 100000)
-            #lowernu = opt.brentq(funl, a = 1e-12, b = nuhat, args=(x,n,nuhat,alpha), maxiter = 100000)
         except:
             lowernu = 1e-07
         def funu(p, x, n, nuhat, alpha):
             return 2 * (np.log(st.nbinom.pmf(x, n, nuhat)) - np.log(st.nbinom.pmf(x, n, p))) - st.chi2.ppf(alpha, 1)
         try:
-            # if length(xi) >1:
-            #     for i in range(length(xi)):
-            #         uppernu.append((opt.brentq(funu, a = nuhat[i], b = 1, args=(x[i],n,nuhat[i],alpha), maxiter = 100000)))
-            #     print(uppernu)
-            #else:
             uppernu = opt.brentq(funu,a=nuhat,b=1,args=(x,n,nuhat,alpha),maxiter=100000)
-            #uppernu = opt.brentq(funu, a = nuhat, b = 1, args=(x,n,nuhat,alpha), maxiter = 100000)
         except:
-            # if length(xi) > 1:
-            #     uppernu.append(.9999999)
-            # else:
             uppernu = 0.9999999
     
     elif method == 'SP':
@@ -271,20 +247,9 @@ Examples
         if x == 0:
             lowernu = 1
             uppernu = 1
-    
     elif method == 'CC':
         lowernu = max(1e-07, nuhat - za * np.sqrt((nuhat**2 * (1 - nuhat))/n) - 0.5/(n + x))
         uppernu = min(nuhat + za * np.sqrt((nuhat**2 * (1 - nuhat))/n) + 0.5/(n + x), 1)
-    
-    # if length(xi) > 1:
-    #     lower = []
-    #     upper = []
-    #     for i in range(length(xi)):
-    #         lower.append(st.nbinom.ppf(1-P,n = m, p = uppernu[i]))
-    #         if lowernu[i] <= 1e-07:
-    #             upper.append(np.inf)
-    #         else:
-    #             upper.append(st.nbinom.ppf(P,n = m, p = lowernu[i]))
     lower = st.nbinom.ppf(1-P,n = m, p = uppernu)
     if lowernu <= 1e-07:
         upper = np.inf
@@ -293,25 +258,46 @@ Examples
     if side == 2:
         alpha *= 2
         P = (2*P)-1
-        # if length(xi) > 1:
-        #     temp = pd.DataFrame({"alpha":[alpha], "P":[P], "pi.hat":[np.round(nuhat,7)[0]], "2-sided.lower":lower[i], "2-sided.upper":[upper[i]]})
-        #     for i in range(1,len(nuhat)):
-        #         temp.loc[len(temp.index)] = [alpha,P,np.round(nuhat,7)[i],lower[i],upper[i]]
-        # else:
         temp = pd.DataFrame({"alpha":[alpha], "P":[P], "pi.hat":[np.round(nuhat,7)], "2-sided.lower":[lower], "2-sided.upper":[upper]})
         return temp
     if side == 1:
-        # if length(xi) > 1:
-        #     temp = pd.DataFrame({"alpha":[alpha], "P":[P], "pi.hat":[np.round(nuhat,7)[0]], "1-sided.lower":[lower[i]], "1-sided.upper":[upper[i]]})
-        #     for i in range(1,len(nuhat)):
-        #         temp.loc[len(temp.index)] = [alpha,P,np.round(nuhat,7)[i],lower[i],upper[i]]
-        # else:
         temp = pd.DataFrame({"alpha":[alpha], "P":[P], "pi.hat":[np.round(nuhat,7)], "1-sided.lower":[lower], "1-sided.upper":[upper]})
         return temp
         
 #tests
-#method = 'CC'
-# print(negbintolint(x = 50, n = 10, side = 1,method = method))
-# print(negbintolint(x = 50, n = 10, side = 2,method = method))
-# print(negbintolint(x= 51, n = 10, side = 1,method = method))
-# print(negbintolint(x = [50,0,0,0,0,0,1,0,0,0], n = 10, side = 2,method = method))
+# x = [negbintolint(x = 50, n = 10, m=20, side = 1, method = "LS"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "LS"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "WU"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "WU"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "CB"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "CB"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "CS"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "CS"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "SC"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "SC"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "LR"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "LR"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "SP"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "SP"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "CC"),
+# negbintolint(x = 50, n = 10, m=20, side = 1, method = "CC"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "LS"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "LS"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "WU"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "WU"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "CB"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "CB"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "CS"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "CS"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "SC"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "SC"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "LR"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "LR"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "SP"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "SP"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "CC"),
+# negbintolint(x = 50, n = 10, m=20, side = 2, method = "CC")]
+# x = x[::2]
+# for  a in x:
+#     print(a)
+
