@@ -158,4 +158,16 @@ Examples
 # df = pd.concat([grain,straw],axis = 1)
 # newx = pd.DataFrame({'grain':[3,6,9]})
 # reg = ols('straw ~ grain',data=df).fit()
-# print(regtolint(reg, DataFrame = df, newx = None, side=1))
+# print(regtolint(reg,df,newx))
+
+# pd.set_option('display.max_rows',110)
+# x = np.random.uniform(0,10,size = 100)
+# y = 20+5*x+np.random.normal(size = 100, loc = 0, scale = 3)
+# df = pd.concat([pd.DataFrame(x),pd.DataFrame(y)],axis = 1)
+# newx = pd.DataFrame({'x':[3,6,9]})
+# print(regtolint(ols('y~x',data = df).fit(),df,newx))
+
+
+
+
+
