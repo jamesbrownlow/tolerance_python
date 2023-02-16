@@ -1020,8 +1020,8 @@ Examples
         phi = np.linspace(0,2*np.pi, 256).reshape(256, 1) # the angle of the projection in the xy-plane
         theta = np.linspace(0, np.pi, 256).reshape(-1, 256) # the angle from the polar axis, ie the polar angle
         # Transformation formulae for a spherical coordinate system.
-        x = Mean[0]+xup*np.sin(theta)*np.cos(phi)
-        y = Mean[1]+yup*np.sin(theta)*np.sin(phi)
+        x = Mean[0]+np.sqrt(xup)*np.sin(theta)*np.cos(phi)
+        y = Mean[1]+np.sqrt(yup)*np.sin(theta)*np.sin(phi)
         z = Mean[2]+np.sqrt(tolout.values)*np.cos(theta)
         ax.plot_surface(x, y, z, color='r',alpha = 0.2)
         plt.show()
