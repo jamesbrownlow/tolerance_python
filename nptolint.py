@@ -207,9 +207,11 @@ Examples
 
     nptol.int(x = x, alpha = 0.10, P = 0.95, side = 1, method = "WILKS", upper = NULL, lower = NULL)
     '''
-    n = len(x)
+    n = length(x)
+    if type(x) is list or type(x) is tuple:
+        x = np.array(x)
     if n < 2:
-        return 'cannot do anything with less than 2 datapoints'
+        return 'nptolint requires more than 1 datapoint.'
     xsort = np.sort(x)
     if(upper == None):
         upper = np.max(x)
@@ -332,7 +334,6 @@ Examples
                     v1 = [np.floor(diff/2), np.ceil(diff/2)] #list
                     v2 = [sum(x) for x in zip(v1, [1,-1])] #add v1 to [1,-1] element-wise
                 if type(v1) == list:
-                    #%%
                     #you can make this block more effient
                     data = {'v1': [v1[0]], 'v2*': [n- v2[0] +1]}
                     HM = pd.DataFrame(data = data)
@@ -344,7 +345,6 @@ Examples
                     for i in range(1,len(HM)):
                         d.loc[len(d.index)] = [alpha,P,xsort[int(HM.loc[i][0])],xsort[int(HM.loc[i][1]-1)]]    
                     temp = d
-                    #%%
                 else:
                     data = {'v1': [v1], 'v2*': [n-v2+1]}
                     HM = pd.DataFrame(data = data)
@@ -510,9 +510,7 @@ def twosided(x,alpha,P):
         XL = np.array([x[r[0]],x[r[0]+1]])
         if s[0] == length(x):
             XU = np.array([x[s[0]-1],x[s[0]-2]])
-            print(s[0]-(r[0]+1)-1)
             g = np.ravel(np.array([(scipy.stats.binom.cdf(s[0]-(r[0]+1)-1,n,P)),(scipy.stats.binom.cdf(s[0]-(r[0]+1)-2,n,P))]))
-            print(g)
             outL = LSReg(XL,g,gamma)
             outU = LSReg(XU,g,gamma)
             temp1 = pd.DataFrame({'0':[outL,x[r[0]]]})
@@ -538,13 +536,15 @@ def twosided(x,alpha,P):
     return temp
 
 
-#x = np.array([12,21,4,2,5,6,7,3,31,23,34,21,22,20,3,4,2,6,89,23,45,6,2,4,6,24,
-#               6,34,23,54,65,7,32,42,42,1,7,89,56,54,23,15,87,8,9,56,12,3,5,69,
-#               8,7,41,56,100,59,80,69,52,46,78,90,78,45,46,49,1,56,26,36,32,55,
-#               44,88,74,9,6,55,90,32,39,40,19,21,24,5,62,14,13,56,75,23,5,77,12,
-#               78,45,12,56,98,78,45,12,35])
-
-#print(nptolint(x, side = 2,method = "WILKS"))
+# x = [12,21,4,2,5,6,7,3,31,23,34,21,22,20,3,4,2,6,89,23,45,6,2,4,6,24,
+#                6,34,23,54,65,7,32,42,42,1,7,89,56,54,23,15,87,8,9,56,12,3,5,69,
+#                8,7,41,56,100,59,80,69,52,46,78,90,78,45,46,49,1,56,26,36,32,55,
+#                44,88,74,9,6,55,90,32,39,40,19,21,24,5,62,14,13,56,75,23,5,77,12,
+#                78,45,12,56,98,78,45,12,35]
+# print(nptolint(x, side = 1,method = "WILKS"))
+# print(nptolint(x, side = 1,method = "WALD"))
+# print(nptolint(x, side = 1,method = "HM"))
+# print(nptolint(x, side = 1,method = "YM"))
 # print(nptolint(x, side = 2,method = "HM"))
 #print(nptolint(x,alpha=0.05, P = 0.99, side = 2,method = "YM"))
 
