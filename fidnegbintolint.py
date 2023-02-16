@@ -99,6 +99,12 @@ Returns
     The second section (Function) simply returns the functional form specified 
     by FUN. 
 
+Note
+----
+    Output values are different from R due to random values being created 
+    inside the function. With this noise, the outputs are bound to be 
+    different for each run. The same goes with R. 
+
 References
 ----------
     Cai, Y. and Krishnamoorthy, K. (2005), A Simple Improved Inferential 
@@ -156,6 +162,10 @@ Examples
     if side == 2:
         alpha = alpha/2
         P = (P+1)/2
+    if type(x1) is list:
+        x1 = np.array(x1)
+    if type(x2) is list:
+        x2 = np.array(x2)
     if m1 == None:
         m1 = n1
     if m2 == None:
@@ -167,8 +177,8 @@ Examples
     Qp1 = st.beta.rvs(size=K,a=n1,b=x1+0.5) #== R
     Qp2 = st.beta.rvs(size=K,a=n2,b=x2+0.5) # == R
     #####
-    TEMP1 = pd.DataFrame([np.quantile(FUN(m1/(st.nbinom.rvs(size=B,n=m1,p=Qp1[i])+m1),m2/(st.nbinom.rvs(size=B,n=m2,p=Qp2[i])+m2)),[P]) for i in range(1000)]) #should it be range(K) instead of range(1000)?-- R does range(1000)
-    TEMP2 = pd.DataFrame([np.quantile(FUN(m1/(st.nbinom.rvs(size=B,n=m1,p=Qp1[i])+m1),m2/(st.nbinom.rvs(size=B,n=m2,p=Qp2[i])+m2)),[1-P]) for i in range(1000)]) #should it be range(K) instead of range(1000)?-- R does range(1000)
+    TEMP1 = pd.DataFrame([np.quantile(FUN(m1/(st.nbinom.rvs(size=B,n=m1,p=Qp1[i])+m1),m2/(st.nbinom.rvs(size=B,n=m2,p=Qp2[i])+m2)),[P]) for i in range(K)]) #should it be range(K) instead of range(1000)?-- R does range(1000)
+    TEMP2 = pd.DataFrame([np.quantile(FUN(m1/(st.nbinom.rvs(size=B,n=m1,p=Qp1[i])+m1),m2/(st.nbinom.rvs(size=B,n=m2,p=Qp2[i])+m2)),[1-P]) for i in range(K)]) #should it be range(K) instead of range(1000)?-- R does range(1000)
     #####
     lower = np.quantile(TEMP2, alpha)
     upper = np.quantile(TEMP1, 1-alpha)
@@ -188,6 +198,8 @@ Examples
 # n2 = 50
 # x1 = st.nbinom.rvs(size=1,n=n1,p=p1)
 # x2 = st.nbinom.rvs(size=1,n=n2,p=p2)
+# x1=27
+# x2=31
 # x = sym.Symbol('x')
 # y = sym.Symbol('y')
 # fn = x * (1 - y) / (y * (1 - x))
