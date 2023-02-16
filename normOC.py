@@ -11,7 +11,6 @@ def length(x):
         return 0
 
 import scipy.stats
-import numpy as np
 #import pandas as pd
 import scipy.integrate as integrate
 #import statistics as st
@@ -77,7 +76,6 @@ def KfactorP(P, n = 10, alpha = 0.05,  side = 1, method = 'HE', m=50,k=0):
             elif method == 'ELL':
                 if f < n**2:
                     print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -151,7 +149,6 @@ def Kfactoralpha(alpha, n = 10, P = 0.05,  side = 1, method = 'HE', m=50,k=0):
                         if K == np.nan or K == None:
                             K = 0
                     return K
-                #TEMP5 = np.vectorize(TEMP4())
                 K = TEMP4(n, f, P, alpha)
                 return K
                 
@@ -174,7 +171,6 @@ def Kfactoralpha(alpha, n = 10, P = 0.05,  side = 1, method = 'HE', m=50,k=0):
             elif method == 'ELL':
                 if f < n**2:
                     print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -207,10 +203,8 @@ def Kfactoralpha(alpha, n = 10, P = 0.05,  side = 1, method = 'HE', m=50,k=0):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return k-K
 
@@ -234,10 +228,6 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             if method == 'HE':
                 def TEMP4(n, f, P, alpha):
                     chia =  scipy.stats.chi2.ppf(alpha, df = f)
-                    if length(P) == 1 and type(P) is list:
-                        P = P[0]
-                    if length(alpha) == 1 and type(alpha) is list:
-                        alpha = alpha[0]
                     zp = scipy.stats.norm.ppf((1+P)/2)
                     za = scipy.stats.norm.ppf((2-alpha)/2)
                     dfcut = n**2*(1+(1/za**2))
@@ -274,8 +264,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             
             elif method == 'ELL':
                 if f < n**2:
-                    print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
+                    print("Warning Message:\nThe ellison method should only be used for f appreciably larger than n^2")
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -298,7 +287,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
+                K = opt.minimize(fun=Fun3, x0=k2,args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
@@ -308,10 +297,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
@@ -597,6 +584,11 @@ References
     Young, D. S. (2016), Normal Tolerance Interval Procedures in the tolerance 
         Package, The R Journal, 8, 200–212.
 
+Note
+----
+    For n sufficiently large, min(n) > 1000, the results approach the 
+    y asymptote. The graphs may be misleading for sufficiently large n.
+
 Examples
     ## The three types of OC-curves that can be constructed with the normOC 
     function.
@@ -648,11 +640,18 @@ Examples
             for j in range(length(n)):
                 allP.append(opt.brentq(KfactorP, a = 1e-10, b = 1-1e-10, args = (n[j],alpha[i],side,method,m,k)))
         Pmin = min(allP)
-        allP = np.array(allP).reshape(length(alpha), length(n)).T
+        if Pmin > 0.99:
+            allP = np.array([Pmin,]*length(allP)).reshape(length(alpha), length(n)).T
+        else:
+            allP = np.array(allP).reshape(length(alpha), length(n)).T
         allP = pd.DataFrame(allP)
+        plt.figure(1)
         plt.plot(n,[0,]*length(n))
         plt.title(f'Normal Tolerance Interval OC Curve for P {tmpobj}')
-        plt.ylim([Pmin,1])
+        if Pmin > 0.99:
+            plt.ylim([0.999,1.001])
+        else:
+            plt.ylim([Pmin,1])
         plt.xlabel('n')
         plt.ylabel('P')
         labels = []
@@ -660,6 +659,7 @@ Examples
             plt.plot(n, allP.iloc[:,i],ls = '-', color = colblind[i],label = round(1-alpha[i],4), marker = 'o', ms = 3, lw = 0.5)
             labels.append(round(1-alpha[i],8))
         plt.legend(reversed(plt.legend().legendHandles), reversed(labels), loc=0, title = "1-α", bbox_to_anchor=(1.04, 1))
+        plt.show()
     elif alpha is None:
         if length(k) != 1 or length(P)<1:
             return "Check values specified for k, n,  and P!"
@@ -674,6 +674,7 @@ Examples
         Amin = min(1-np.array(allalpha))
         allalpha = np.array(allalpha).reshape(length(P), length(n)).T
         allalpha = pd.DataFrame(allalpha)
+        plt.figure(2)
         plt.plot(n,[0,]*length(n))
         plt.title(f'Normal Tolerance Interval OC Curve for 1-α {tmpobj}')
         plt.ylim([Amin,1])
@@ -684,6 +685,7 @@ Examples
             plt.plot(n, 1-allalpha.iloc[:,i],ls = '-', color = colblind[i],label = round(P[i],4), marker = 'o', ms = 3, lw = 0.5)
             labels.append(round(P[i],8))
         plt.legend(loc=0, title = "P", bbox_to_anchor=(1.04, 1))
+        plt.show()
     elif k is None:
         if length(P)*length((alpha))>10:
             print("Too many combinations of α and P specified! Using only the first 10 such combinations.")
@@ -706,6 +708,7 @@ Examples
         P = np.array(P)
         #tmpalpha = np.array([1-alpha,]*length(P)).flatten()
         #tmpP = np.round(sorted(np.array([P,]*length(alpha)).flatten()),8)
+        plt.figure(3)
         plt.plot(n,[0,]*length(n))
         plt.title('Normal Tolerance Interval OC Curve for k and n')
         plt.ylim([0,allk.values.max()+1e-01])
@@ -718,6 +721,29 @@ Examples
             plt.plot(n, allk.iloc[i],ls = '-', color = colblind[i],label = [np.round(1-alpha[i%length(alpha)],8),np.round(P[i%length(P)],8)], marker = 'o', ms = 3, lw = 0.5)
             labels.append([np.round(1-alpha[i%length(alpha)],8),np.round(Palist[i],8)])
         plt.legend(plt.legend().legendHandles,labels, loc=0, title = "(1-α,P)", bbox_to_anchor=(1.04, 1))
+        plt.show()
     else:
-        return "Check values specified for k, n, alpha, and P!"
-    
+        print("Check values specified for k, n, alpha, and P!")
+        
+# ## Example 1, finding k-factors
+
+# alphalist = np.arange(start=0.01,stop=0.1,step=0.005)
+
+# Plist = np.arange(start=0.9,stop=0.99,step=0.005)
+
+# normOC(k = None, alpha = alphalist, P = Plist, 
+#         n = list(range(10,21)), side = 1)
+
+# ## Example 2, finding alpha
+
+# Plist = [0.985,0.995,.98,.99]
+
+# normOC(k = 4, alpha = None, P = Plist, n = list(range(10,21)), 
+#         side = 1)
+
+# ## Example 3, finding P
+
+# alphalist = [0.01,0.02,0.03,0.04,0.05]
+
+# normOC(k = 4, alpha = alphalist, P = None, n = list(range(10,21)), 
+#         side = 1)
