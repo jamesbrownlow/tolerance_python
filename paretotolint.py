@@ -95,7 +95,7 @@ Examples
     S = sum([y-T for y in x]) 
     if type2:
         mx = max(x)
-        r = n - x.count(mx)
+        r = n - list(x).count(mx)
         def m(P,R,n):
             return (1+n*np.log(P))/(r-(5/2))
         k1 = (-m(P,r,n)-scipy.stats.norm.ppf(1-alpha)*np.sqrt(m(P,r,n)**2/r+(1/r**2)))/n
@@ -221,14 +221,14 @@ Examples
 --------
     ## 95%/99% 2-sided Pareto tolerance intervals for a sample of size 500. 
         
-        x = np.random.exponential(size=500)
+        x = [9.596677 , 9.958004,  8.665530,  7.413763, 18.689831 , 7.568260 , 7.485178 , 9.390471 , 7.871543 , 8.985638]
         
-        paretotolint(x = x, alpha = 0.05, P = 0.99, side = 2, method = "DUN", power.dist = FALSE)
+        paretotolint(x = x, alpha = 0.05, P = 0.99, side = 1, method = "DUN", powerdist = False)
     '''
     if side != 1 and side != 2:
         return "Must specify a one-sided or two-sided procedure!"
     if powerdist:
-        x = np.log(1/x)
+        x = np.log(1/np.array(x))
     else:
         x = np.log(x)
     out = exp2tolint(x = x, alpha = alpha, P = P, side = side, method = method, type2 = False)
@@ -249,3 +249,6 @@ Examples
         return pd.DataFrame({'alpha':[alpha],'P':[P],'2-sided.lower':lower,'2-sided.upper':upper})
     else:
         return pd.DataFrame({'alpha':[alpha],'P':[P],'1-sided.lower':lower,'1-sided.upper':upper})
+    
+# x = [9.596677 , 9.958004,  8.665530,  7.413763, 18.689831 , 7.568260 , 7.485178 , 9.390471 , 7.871543 , 8.985638]
+# print(paretotolint(x = x, alpha = 0.05, P = 0.99, side = 1, method = "DUN", powerdist = False))
