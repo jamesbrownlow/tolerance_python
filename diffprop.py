@@ -391,9 +391,11 @@ Examples
     out=np.random.beta(size=int(n), a = k1 + a1, b = n1 - k1 + a1) - np.random.beta(size=int(n), a = k2 + a2, b = n2 - k2 + a2)
     return out
 
-
-#print(ddiffprop(x=1,k1=.2,k2=.1,n1=.1,n2=.2)) #works
+#x = rdiffprop(n=100,k1=2,k2=10,n1=17,n2=13)
+#x1 = sorted(x)
+#print(ddiffprop(x=x1, k1=2, k2=10, n1=17, n2=13,a1=0.4,a2=0.9))
+#print(ddiffprop(x=1,k1=.2,k2=.1,n1=.1,n2=.2,a1=0.4,a2=0.9)) #works
 #print(ddiffprop((.335,.44,.20,.1289,.45),k1 = 12, k2 = 11, n1 = 13, n2 = 120,log=True,a1=0.7,a2=0.4))
-#print(pdiffprop(q = (.001,.1), k1 = 10, k2 = 12, n1 = 17, n2 = 13,lowertail = False,logp = True))
-#print(qdiffprop(p = (0.650,.32), k1 = 90, k2 = 79, n1 = 43, n2 = 29))
+#print(pdiffprop(q = x, k1 = 2, k2 = 10, n1 = 17, n2 = 13,lowertail = False,logp = True))
+#print(qdiffprop(p = (0.650,.32), k1 = 2, k2 = 10, n1 = 17, n2 = 13))
 #print(rdiffprop(n = 100, k1 = 2, k2 = 10, n1 = 17, n2 = 13))
