@@ -38,8 +38,6 @@ Example:
     X = np.zeros(p*p)
     shape = (p,p)
     X = X.reshape(shape)
-    #X = pd.DataFrame(X)
-    #print(X.iloc[0][1])
     chi2rvs = []
     for i in range(p):
         chi2rvs.append(np.sqrt(st.chi2.rvs(size = 1,df = df-i)))
@@ -49,8 +47,6 @@ Example:
         for i in range(1,p):
             pseq = list(range(1,p))
             a.extend(np.repeat(4*pseq[i-1], i))
-        # a is equivalent to rep(p*pseq,pseq)
-        #X = pd.DataFrame(X)
         for i in range(p-1):
             for j in range((p-1)-i):
                 X[i][j+1+i] = st.norm.rvs(size = 1)
@@ -214,7 +210,6 @@ Examples
         qsquared = st.chi2.rvs(df=1,size = p*B)/n
         shape = (int(p*B/2),p)
         qsquared = qsquared.reshape(shape)
-        #qsquared = pd.DataFrame(qsquared)
         L = []
         for i in range(B):
             R = rwishart(df=n-1,p=p)
@@ -280,7 +275,7 @@ Examples
         else:
             tol = np.array(sort((n-1)*st.ncx2.ppf(P,p,p/n)/st.chi2.ppf(alpha,n-p),decreasing=False))
             tol = tolfun(alpha,P,tol)
-    elif method == 'HMV11':
+    elif method == 'HM.V11':
         e = (4*p*(n-p-1)*(n-p)-12*(p-1)*(n-p-2))/(3*(n-2)+p*(n-p-1))
         d = (e-2)/(n-p-2)
         if length(alpha) > 1:
@@ -290,8 +285,10 @@ Examples
             tol = np.array(sort(d*(n-1)*st.ncx2.ppf(P,p,p/n)/st.chi2.ppf(alpha,e),decreasing=False))
             tol = tolfun(alpha,P,tol)
     elif method == 'MC':
-        if length(P) < 2 or length(alpha) < 2:
-            return 'The length of P and alpha must both be greater than 1 for this method.'
+        if length(P) == 1:
+            P = [P]
+        if length(alpha) == 1:
+            alpha = [alpha]
         U = np.array([st.norm.rvs(size = int(B*p), loc = 0, scale = 1/n)]).reshape((B,p))
         V = []
         Y = []
@@ -300,30 +297,68 @@ Examples
         for i in range(B):
             V.append(np.linalg.inv(rwishart(df = n-1,p = p)))
             Y.append(np.array([st.norm.rvs(size = int(M*p), loc = 0, scale = 1)]).reshape((p,M)))
-            #RES.append(Y[i] -  U[i,:])
         for i in range(B):
-            for j in range(n-1):
+            tmp = []
+            for j in range(p):
                 tmp.append(Y[i][j]-U[i][j])
-                if j == n - 1 - 1:
-                    RES.append(tmp)
-                    tmp = []
+            RES.append(tmp)       
+        RES = np.array(RES)
+        tmp = []
         quants = []
-        for i in range(B):
-            for j in range(length(P)):
-                quants.append(np.quantile((n-1)*(np.dot(np.dot(np.array(RES[i]).T,V[i]),np.array(RES[i]))).T,P[j]))
-        T = np.array(quants).reshape(B,length(P))
-        T = pd.DataFrame(T)
+        for j in range(length(P)):
+            tmp = []
+            for i in range(B):
+                tmp.append(np.quantile((n-1)*np.diag(np.linalg.multi_dot([RES[i].T,V[i],RES[i]])),P[j]))
+            quants.append(tmp)
+        if length(P) == 1:
+            T = np.array([Q for Q in quants]).ravel()
+            T = pd.DataFrame(T)
+        else:
+            T = np.array([Q for Q in quants])
+            T = pd.DataFrame(T).T
         tmp = []
         tol = []
+        if length(alpha) == 1:
+            try:
+                alpha[0][0]
+                alpha = alpha[0]
+            except:
+                alpha = alpha
+        else:
+            alpha = sorted(alpha,reverse = True)
         for i in range(length(alpha)):
             for j in range(length(T.iloc[0])):
-                tmp.append(np.quantile(T.iloc[j,i],1-alpha[i])) 
-                if j == length(T.iloc[0])-1:
-                    tol.append(sort(tmp,decreasing=False))
-                    tmp = []
-        tol = pd.DataFrame(tol,columns = sort(alpha,decreasing=True))
-        tol.index = [P]
+                tmp.append(np.quantile(T.iloc[:,j],1-alpha[i])) 
+            tol.append(tmp)
+            tmp = []
+        tol = pd.DataFrame(tol).T
+        try:
+            tol.columns = alpha
+        except:
+            tol.columns = [alpha]
+        try:
+            tol.index = P
+        except:
+            tol.index = [P]
+        
         
     return tol
 
-
+# Plist = [0.99,0.98]
+# alphalist = [0.01,0.05,0.1]
+# x1 = [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 3, 10, 8, 2, 
+#       11, 4, 16, 13, 17, 1, 7, 1, 1, 8, 19, 27, 2, 7, 7, 3, 1,
+#       15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8,12,7,8,15]
+# x2 = [9, 1, 4, 5, 11, 5, 1, 5, 5, 4, 10, 1,
+#       12, 1, 3, 4, 2, 9, 2, 1, 5, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
+#       10, 2, 1, 2, 17, 4, 3, 2, 8, 2, 12, 6, 1, 5, 1,
+#       5, 23, 3, 3, 14, 6]
+# x = pd.DataFrame({'x1':x1,'x2':x2})
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'KM'))
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'AM'))
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'GM'))
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'HM'))
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'MHM'))
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'V11'))
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'HM.V11'))
+#print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'MC'))
