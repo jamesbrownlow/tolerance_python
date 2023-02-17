@@ -69,8 +69,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             
             elif method == 'ELL':
                 if f < n**2:
-                    print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
+                    print("Warning Message:\nThe ellison method should only be used for f appreciably larger than n^2")
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -89,11 +88,11 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m)
+                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
+                K = opt.minimize(fun=Fun3, x0=k2,args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
@@ -103,10 +102,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
@@ -127,10 +124,10 @@ Description
         
 Parameters
 ----------
-    x: list
+    x: list, optional
         A vector of data which is distributed according to a normal distribution.
     
-    normstats: dictionary
+    normstats: dictionary, optional
         An optional dictionary of statistics that can be provided in-lieu of 
         the full dataset. If provided, the user must specify all three 
         components: the sample mean (xbar), the sample standard deviation (s), 
@@ -251,7 +248,7 @@ Examples
     '''
     if(side != 1 and side != 2):
         return "must be one or two sided only"
-    if x == None:
+    if x is None:
         xbar = normstats['xbar']
         s = normstats['s']
         n = normstats['n']
@@ -259,21 +256,16 @@ Examples
         xbar = np.mean(x)
         s = st.stdev(x)
         n = length(x)
-    
     #checks to see if 0 None, all None, or between 0 and all None in hyperpar
     checklist = list(hyperpar.values())
-    boollist = []
-    for i in range(len(checklist)):
-        if checklist[i] == None:
-            boollist.append(1)        
-            
-    if len(boollist) == len(checklist):
+    checklist = [False if c == None else True for c in checklist]
+    if not all(checklist):
         K = Kfactor(n=n,alpha=alpha,P=P,side=side,method=method,m=m)
         if K == None:
             return ''
         lower = xbar - s*K
         upper = xbar + s*K
-    elif len(boollist) > 0 and len(boollist) != len(checklist):
+    elif any(checklist) and not all(checklist):#length(boollist) > 0 and length(boollist) != length(checklist):
         return 'All or 0 hyperparameters must be specified.'
     else:
         mu0 = hyperpar['mu0']
@@ -281,8 +273,6 @@ Examples
         m0 = hyperpar['m0']
         n0 = hyperpar['n0']
         K = Kfactor(n=n0+n,f=m0+n-1,alpha=alpha,P=P,side=side,method=method,m=m)
-        if K == None:
-            return ''
         xbarbar = (n0*mu0+n*xbar)/(n0+n)
         q2 = (m0*sig20+(n-1)*s**2+(n0*n*(xbar-mu0)**2)/(n0+n))/(m0+n-1)
         lower = xbarbar - np.sqrt(q2)*K
@@ -294,24 +284,25 @@ Examples
     return temp
 
 # #need this if you want to initialize hyperpar
-# test_dict = {'mu0':'','sig20':'','m0':'','n0':''}
-# test_list = [1,2,3,4]
+# test_dict = {'mu0':'','sig20':'','m0':'','n0':''} #Don't change this line of code
+# test_list = [1,2,4,3]
 # test_dict = dict(zip(test_dict, test_list))
 
 # #need this if you want to initialize normstats
-# stats_dict = {'xbar':'','s':'','n':''}
+# stats_dict = {'xbar':'','s':'','n':''} #Don't change this line of code
 # stats_list = [1,2,3]
 # stats_dict = dict(zip(stats_dict,stats_list))
 
-# sims = 50
-# lower = np.zeros(sims)
-# upper = np.zeros(sims)
+# # sims = 50
+# # lower = np.zeros(sims)
+# # upper = np.zeros(sims)
 # #for i in range(sims):
 # #    lower[i], upper[i] = bayesnormtolint(x=np.random.normal(size=100), hyperpar = test_dict).iloc[0][2:4]
 
-# print(bayesnormtolint(x=[1,2,3,4],method = 'OCT', side = 2, hyperpar = test_dict))
-# print(bayesnormtolint(x=[1,2,3,4],method = 'OCT', side = 2))#,hyperpar = test_dict))
-# print(bayesnormtolint(normstats = stats_dict, method = 'OCT', side = 2,hyperpar=test_dict))#,hyperpar = test_dict))
+# print(bayesnormtolint(x=[1,2,3,4],method = 'HE', side = 1, hyperpar = test_dict))
+# print(bayesnormtolint(x=[1,2,3,4],method = 'HE', side = 2, hyperpar = test_dict))
+# print(bayesnormtolint(normstats = stats_dict, method = 'HE', side = 1,hyperpar=test_dict))
+# print(bayesnormtolint(normstats = stats_dict, method = 'HE', side = 2,hyperpar=test_dict))
     
     
     
