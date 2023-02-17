@@ -1,5 +1,3 @@
-import numpy as np
-import scipy.stats
 import pandas as pd
 
 def uniftolint(x, alpha = 0.05, P = 0.99, upper = None, lower = None, side = 1):
@@ -43,15 +41,24 @@ References
     if side == 2:
         alpha = alpha/2
         P = (P+1)/2
-    n = len(x)
+    try:
+        n = len(x)
+    except:
+        n = 1
     x1 = lower
     xn = upper
-    if x1 == None:
-        x1 = min(x)
-    if xn == None:
-        xn = max(x)
-    lower = ((1-P)/(1-alpha)**(1/n))*(xn-x1)+x1
-    upper = (P/(alpha)**(1/n))*(xn-x1) + x1
+    if x1 is None:
+        try:
+            x1 = min(x)
+        except:
+            x1 = x
+    if xn is None:
+        try:
+            xn = max(x)
+        except:
+            xn=x
+    lower = ((1 - P)/(1 - alpha)**(1/n)) * (xn - x1) + x1
+    upper = (P/(alpha)**(1/n)) * (xn - x1) + x1
     if side == 2:
         alpha *= 2
         P = (2*P)-1
@@ -59,3 +66,11 @@ References
         return pd.DataFrame(d)
     d = {"alpha":[alpha], "P":[P], "1-sided.lower":[lower], "1-sided.upper":[upper]}
     return pd.DataFrame(d)
+
+# x = [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 30, 10, 8, 2, 
+#                   11, 4, 16, 13, 17, 1, 7, 1, 1, 28, 19, 27, 2, 7, 7, 13, 1,
+#                   15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8, 12, 6, 11, 5, 1,
+#                   5, 23, 3, 3, 14, 6, 9, 1, 24, 5, 11, 15, 1, 5, 5, 4, 10, 1,
+#                   12, 1, 3, 4, 2, 9, 2, 1, 25, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
+#                   10, 2, 1, 2, 17, 4, 3, 22, 8, 2]
+# print(uniftolint(x=x,side = 1))
