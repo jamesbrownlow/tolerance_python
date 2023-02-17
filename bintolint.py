@@ -79,8 +79,9 @@ Returns
         
 References
 ----------
-    Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance Intervals. 
-        Journal of Statistical Software, 36(5), 1-39. URL http://www.jstatsoft.org/v36/i05/.
+    Derek S. Young (2010). tolerance: An R Package for Estimating Tolerance 
+        Intervals. Journal of Statistical Software, 36(5), 1-39. 
+        URL http://www.jstatsoft.org/v36/i05/.
         
     Brown, L. D., Cai, T. T., and DasGupta, A. (2001), Interval Estimation 
         for a Binomial Proportion, Statistical Science, 16, 101–133.
@@ -121,7 +122,7 @@ Examples
         upperp = phat + k * np.sqrt(phat *(1-phat)/n)
     elif method == 'WS':
         lowerp = ptilde - (k*np.sqrt(n)/(n+k**2))*np.sqrt(phat*(1-phat)+(k**2/(4*n)))
-        upperp = ptilde - (k*np.sqrt(n)/(n+k**2))*np.sqrt(phat*(1-phat)+(k**2/(4*n)))
+        upperp = ptilde + (k*np.sqrt(n)/(n+k**2))*np.sqrt(phat*(1-phat)+(k**2/(4*n)))
     elif method == 'AC':
         lowerp = ptilde-k*np.sqrt(ptilde*(1-ptilde)/ntilde)
         upperp = ptilde+k*np.sqrt(ptilde*(1-ptilde)/ntilde)
@@ -147,9 +148,9 @@ Examples
         lowerp = scipy.stats.norm.cdf(zhat-1*k*np.sqrt((phat*(1-phat))/(n*scipy.stats.norm.pdf(zhat)**2)))
         upperp = scipy.stats.norm.cdf(zhat+1*k*np.sqrt((phat*(1-phat))/(n*scipy.stats.norm.pdf(zhat)**2)))
     elif method == 'PO':
-        muhat = -np.log(phat)
-        lowerp = np.exp(-(muhat+1*k*np.sqrt((1-phat)/n*phat)))
-        upperp = np.exp(-(muhat-1*k*np.sqrt((1-phat)/n*phat)))
+        muhat = (-np.log(phat))
+        upperp = np.exp(-(muhat-1*k*np.sqrt((1-phat)/(n*phat))))
+        lowerp = np.exp(-(muhat+1*k*np.sqrt((1-phat)/(n*phat))))
     elif method == 'CL':
         muhat = -np.log(phat)
         gammahat = np.log(muhat)
@@ -157,7 +158,7 @@ Examples
         upperp = np.exp(-np.exp(gammahat-1*k*np.sqrt((1-phat)/(n*phat*muhat**2))))
     elif method == 'CC':
         lowerp = phat-k*np.sqrt(phat*(1-phat)/n)-1/(2*n)
-        upperp = phat-k*np.sqrt(phat*(1-phat)/n)+1/(2*n)
+        upperp = phat+k*np.sqrt(phat*(1-phat)/n)+1/(2*n)
     elif method == 'CWS':
         lowerp = (2*n*phat+k**2-1-k*np.sqrt(k**2-2-(1/n)+4*phat*(n*(1-phat)+1)))/(2*(n+k**2))
         upperp = (2*n*phat+k**2+1+k*np.sqrt(k**2+2-(1/n)+4*phat*(n*(1-phat)-1)))/(2*(n+k**2))
@@ -172,4 +173,31 @@ Examples
     else:
         temp = pandas.DataFrame([[alpha,P, phat,lower,upper]],columns=['alpha','P','p.hat','1-sided.lower','1-sided.upper'])   
     return temp
+
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "JF", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "JF", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "LS", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "LS", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "WS", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "WS", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "AC", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "AC", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "CP", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "CP", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "AS", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "AS", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "LO", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "LO", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "PR", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "PR", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "PO", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "PO", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "CL", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "CL", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "CC", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "CC", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 1, method = "CWS", a1 = 2, a2 = 10))
+# print(bintolint(x = [1,0,1,1,0,1,1,0], n = 1000, m = 2500, alpha = 0.15, P = 0.90, side = 2, method = "CWS", a1 = 2, a2 = 10))
+
+
 
