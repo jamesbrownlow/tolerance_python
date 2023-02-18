@@ -129,28 +129,37 @@ Examples
     inits = [mmom,smom]
     def logll(pars,x):
         return sum(-st.logistic.logpdf(x,loc = pars[0],scale = pars[1]))
-    try:
-        out = opt.minimize(logll, x0 = inits, args = (x), method = 'BFGS')
-    except:
-        L = mmom
-        U = mmom
-    else:
-        out_est = out['x']
-        m = out_est[0]
-        s = out_est[1]
-        invfish = out['hess_inv']
-        var_m = invfish[0,0]
-        var_s = invfish[1,1]
-        covms = invfish[0,1]
-        kdelta = st.logistic.ppf(P, scale = np.sqrt(3)/np.pi)
-        t1 = kdelta - covms * st.norm.ppf(1-alpha)**2
-        t2 = kdelta - covms * st.norm.ppf(1-alpha)**2
-        u = kdelta**2 - var_m * st.norm.ppf(1-alpha)**2
-        v = 1 - var_s * st.norm.ppf(1-alpha)**2
-        klower = (t1+np.sqrt(t1**2-u*v))/v
-        kupper = (t2+np.sqrt(t1**2-u*v))/v
-        L = m - klower * s * np.pi/np.sqrt(3)
-        U = m + kupper * s * np.pi/np.sqrt(3)
+    if loglog == False:
+        try:
+            out = opt.minimize(logll, x0 = inits, args = (x), method = 'L-BFGS-B')
+        except:
+            L = mmom
+            U = mmom
+        else:
+            invfish = out['hess_inv'].todense()
+    elif loglog == True:
+        try:
+            out = opt.minimize(logll, x0 = inits, args = (x), method = 'BFGS')
+        except:
+            L = mmom
+            U = mmom
+        else:
+            invfish = out['hess_inv']
+    out_est = out['x']
+    m = out_est[0]
+    s = out_est[1]
+    var_m = invfish[0,0]
+    var_s = invfish[1,1]
+    covms = invfish[0,1]
+    kdelta = st.logistic.ppf(P, scale = np.sqrt(3)/np.pi)
+    t1 = kdelta - covms * st.norm.ppf(1-alpha)**2
+    t2 = kdelta + covms * st.norm.ppf(1-alpha)**2
+    u = kdelta**2 - var_m * st.norm.ppf(1-alpha)**2
+    v = 1 - var_s * st.norm.ppf(1-alpha)**2
+    klower = (t1+np.sqrt(t1**2-u*v))/v
+    kupper = (t2+np.sqrt(t1**2-u*v))/v
+    L = m - klower * s * np.pi/np.sqrt(3)
+    U = m + kupper * s * np.pi/np.sqrt(3)
     if loglog:
         L = np.exp(L)
         U = np.exp(U)
@@ -161,5 +170,14 @@ Examples
     if side == 1:
         temp.columns = ["alpha", "P", "1-sided.lower", "1-sided.upper"]
     return temp
-    
-log
+# x = [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 30, 10, 8, 2, 
+#       11, 4, 16, 13, 17, 1, 7, 1, 1, 28, 19, 27, 2, 7, 7, 13, 1,
+#       15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8, 12, 6, 11, 5, 1,
+#       5, 23, 3, 3, 14, 6, 9, 1, 24, 5, 11, 15, 1, 5, 5, 4, 10, 1,
+#       12, 1, 3, 4, 2, 9, 2, 1, 25, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
+#       10, 2, 1, 2, 17, 4, 3, 22, 8, 2]
+# #x = st.logistic.rvs(size = 100, loc = 5, scale = 1)
+# print(logistolint(x,side = 1, loglog = False))
+# print(logistolint(x,side = 2, loglog = False))
+# print(logistolint(x,side = 1, loglog = True))
+# print(logistolint(x,side = 2, loglog = True))
