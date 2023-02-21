@@ -3,6 +3,22 @@ import numpy as np
 import scipy.stats as st
 import scipy.optimize as opt
 
+def lowerupper(out_est,invfish,P,alpha):
+    m = out_est[0]
+    s = out_est[1]
+    var_m = invfish[0,0]
+    var_s = invfish[1,1]
+    covms = invfish[0,1]
+    kdelta = st.logistic.ppf(P, scale = np.sqrt(3)/np.pi)
+    t1 = kdelta - covms * st.norm.ppf(1-alpha)**2
+    t2 = kdelta + covms * st.norm.ppf(1-alpha)**2
+    u = kdelta**2 - var_m * st.norm.ppf(1-alpha)**2
+    v = 1 - var_s * st.norm.ppf(1-alpha)**2
+    klower = (t1+np.sqrt(t1**2-u*v))/v
+    kupper = (t2+np.sqrt(t1**2-u*v))/v
+    L = m - klower * s * np.pi/np.sqrt(3)
+    U = m + kupper * s * np.pi/np.sqrt(3)
+    return [L,U]
 
 def logistolint(x, alpha = 0.05, P = 0.99, loglog = False, side = 1):
     '''
@@ -66,7 +82,8 @@ Returns
 Note
 ----
     More data is ideal. More data means that the results from Python and R 
-    become increasingly similar.
+    become increasingly similar. The hessian function estimated by Python
+    is vastly different than R. Possible improvements. 
 
 References
     Balakrishnan, N. (1992), Handbook of the Logistic Distribution, Marcel 
@@ -118,7 +135,7 @@ Examples
     if side != 1 and side != 2:
         return 'Must specify a one-sided or two-sided procedure'
     if loglog:
-        x = np.log(x)
+       x = np.log(x)
     if side == 2:
         alpha = alpha/2
         P = (P+1)/2
@@ -129,38 +146,42 @@ Examples
     inits = [mmom,smom]
     def logll(pars,x):
         return sum(-st.logistic.logpdf(x,loc = pars[0],scale = pars[1]))
-    if loglog == False:
+    if not loglog:
         try:
             out = opt.minimize(logll, x0 = inits, args = (x), method = 'L-BFGS-B')
+            if out['success'] == False:
+                out_est = opt.minimize(logll, x0 = inits, args = (x), method = 'Nelder-Mead')['x']
         except:
             L = mmom
             U = mmom
         else:
             invfish = out['hess_inv'].todense()
-    elif loglog == True:
+            if out['success'] == True:
+                out_est = out['x']
+            L = lowerupper(out_est,invfish,P,alpha)[0]
+            U = lowerupper(out_est,invfish,P,alpha)[1]
+            if L > U:
+                tmp = L
+                L = U
+                U = tmp
+    elif loglog:
         try:
-            out = opt.minimize(logll, x0 = inits, args = (x), method = 'BFGS')
+            out = opt.minimize(logll, x0 = inits, args = (x), method = 'BFGS',options={'maxiter':7})
+            if out['success'] == False:
+                out_est = opt.minimize(logll, x0 = inits, args = (x), method = 'Nelder-Mead')['x']
         except:
             L = mmom
             U = mmom
         else:
             invfish = out['hess_inv']
-    out_est = out['x']
-    m = out_est[0]
-    s = out_est[1]
-    var_m = invfish[0,0]
-    var_s = invfish[1,1]
-    covms = invfish[0,1]
-    kdelta = st.logistic.ppf(P, scale = np.sqrt(3)/np.pi)
-    t1 = kdelta - covms * st.norm.ppf(1-alpha)**2
-    t2 = kdelta + covms * st.norm.ppf(1-alpha)**2
-    u = kdelta**2 - var_m * st.norm.ppf(1-alpha)**2
-    v = 1 - var_s * st.norm.ppf(1-alpha)**2
-    klower = (t1+np.sqrt(t1**2-u*v))/v
-    kupper = (t2+np.sqrt(t1**2-u*v))/v
-    L = m - klower * s * np.pi/np.sqrt(3)
-    U = m + kupper * s * np.pi/np.sqrt(3)
-    if loglog:
+            if out['success'] == True:
+                out_est = out['x']
+            L = lowerupper(out_est,invfish,P,alpha)[0]
+            U = lowerupper(out_est,invfish,P,alpha)[1]
+            if L > U:
+                tmp = L
+                L = U
+                U = tmp
         L = np.exp(L)
         U = np.exp(U)
     if side == 2:
@@ -175,8 +196,8 @@ Examples
 #       15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8, 12, 6, 11, 5, 1,
 #       5, 23, 3, 3, 14, 6, 9, 1, 24, 5, 11, 15, 1, 5, 5, 4, 10, 1,
 #       12, 1, 3, 4, 2, 9, 2, 1, 25, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
-#       10, 2, 1, 2, 17, 4, 3, 22, 8, 2]
-# #x = st.logistic.rvs(size = 100, loc = 5, scale = 1)
+#       10, 2, 1, 2, 17, 4, 3, 22, 8]
+# x = st.logistic.rvs(size = 100000, loc = 500, scale = 1)
 # print(logistolint(x,side = 1, loglog = False))
 # print(logistolint(x,side = 2, loglog = False))
 # print(logistolint(x,side = 1, loglog = True))
