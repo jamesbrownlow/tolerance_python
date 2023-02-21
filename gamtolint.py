@@ -64,8 +64,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             
             elif method == 'ELL':
                 if f < n**2:
-                    print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
+                    print("Warning Message:\nThe ellison method should only be used for f appreciably larger than n^2")
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -84,11 +83,14 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m)
+                    if n < 75:
+                        return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
+                    else:
+                        return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = n*1000, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
+                K = opt.minimize(fun=Fun3, x0=k2,args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
@@ -98,10 +100,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
@@ -264,5 +264,25 @@ Examples
 
 #x = [1,2,3,4,5,6,7,8,9,9,8,4,6,2,1,6,8,4,3,2,4,6,8,4,2,4,6,7,8,2,3,5,7,5,2,3,4,0]
 #x = [1,2]
-x = [31,20,20,27,26,26,30,25,24,29,111,2,3,4,2,5,6,777,3,223,425,151,100]
-print(gamtolint(x,side=2))
+# x = [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 30, 10, 8, 2, 
+#       11, 4, 16, 13, 17, 1, 7, 1, 1, 28, 19, 27, 2, 7, 7, 13, 1,
+#       15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8, 12, 6, 11, 5, 1,
+#       5, 23, 3, 3, 14, 6, 9, 1, 24, 5, 11, 15, 1, 5, 5, 4, 10, 1,
+#       12, 1, 3, 4, 2, 9, 2, 1, 25, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
+#       10, 2, 1, 2, 17, 4, 3, 22, 8, 2,12,1,1,1,1,1,1,1,1,1,2,1,1,1,1,
+#       2,2,2,2,2,3,2,2,2,1,1,1,1,1,1,1,12,1,1,1,1,1,1,2,2,2,2,2,2,3,1,1,1,1,1,
+#       2,2,2,2,2,2,2,2,2,2,22,4,1,1,1,1,11,1,1,1,1,1,1,1,1]
+# print(gamtolint(x, side = 1, method = 'HE'))
+# print(gamtolint(x, side = 2, method = 'HE'))
+# print(gamtolint(x, side = 1, method = 'HE2'))
+# print(gamtolint(x, side = 2, method = 'HE2'))
+# print(gamtolint(x, side = 1, method = 'WBE'))
+# print(gamtolint(x, side = 2, method = 'WBE'))
+# print(gamtolint(x, side = 1, method = 'ELL'))
+# print(gamtolint(x, side = 2, method = 'ELL'))
+# print(gamtolint(x, side = 1, method = 'KM'))
+# print(gamtolint(x, side = 2, method = 'KM'))
+# print(gamtolint(x, side = 1, method = 'EXACT'))
+# print(gamtolint(x, side = 2, method = 'EXACT'))
+# print(gamtolint(x, side = 1, method = 'OCT'))
+# print(gamtolint(x, side = 2, method = 'OCT'))
