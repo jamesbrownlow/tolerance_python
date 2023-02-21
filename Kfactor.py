@@ -83,7 +83,10 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
+                    if n < 75:
+                        return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
+                    else:
+                        return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = n*1000, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
@@ -102,6 +105,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
+
+# print(Kfactor(75,method='OCT',side = 2))
 # print(Kfactor(15,f=12,method = 'HE',side = 2,m=100, alpha = 0.02, P = 0.98))
 # print(Kfactor(15,f=12,method = 'HE2',side = 2,m=100, alpha = 0.02, P = 0.98))
 # print(Kfactor(15,f=12,method = 'WBE',side = 2,m=100, alpha = 0.02, P = 0.98))

@@ -75,8 +75,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             
             elif method == 'ELL':
                 if f < n**2:
-                    print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
+                    print("Warning Message:\nThe ellison method should only be used for f appreciably larger than n^2")
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -95,11 +94,14 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m)
+                    if n < 75:
+                        return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
+                    else:
+                        return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = n*1000, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
+                K = opt.minimize(fun=Fun3, x0=k2,args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
@@ -109,10 +111,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
@@ -232,7 +232,7 @@ Examples
 ## Tables generated for each value of the sample size.
 
     Ktable(n=[2,3,4,5], alpha=[.7,.3,.4], P=[.99,.98,.97,.96,.95], 
-           side = 1, f = None, method = 'HE', m = 50, byarg = 'alpha'
+           side = 1, f = None, method = 'HE', m = 50, byarg = 'alpha')
                  
     Ktable(n=2, alpha=.05, P=[.99,.98], side = 1, f = None, method = 'HE', 
            m = 50, byarg = 'alpha')
@@ -297,5 +297,4 @@ Examples
     else:
         return 'Must specify index for table!'
     return ''
-            
 
