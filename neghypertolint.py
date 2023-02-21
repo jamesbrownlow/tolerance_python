@@ -1,6 +1,8 @@
 import scipy.stats as st
 import numpy as np
 import pandas as pd
+import warnings
+warnings.filterwarnings('ignore')
 
 def length(x):
     if type(x) == float or type(x) == int or type(x) == np.int32 or type(x) == np.float64 or type(x) == np.float32 or type(x) == np.int64:
@@ -452,6 +454,8 @@ Examples
     k = st.norm.ppf(1-alpha)
     if m == None:
         m = n
+    if (nuhat**2*(1-nuhat))/x < 0 or (N-x)/(N-1) < 0:
+        print("Warning message:\nNaNs produced, sqrt of negative number was taken. ")
     fpc = np.sqrt((N-x)/(N-1))
     senuhat = np.sqrt((nuhat**2*(1-nuhat))/x)*fpc
     if method == 'EX':
@@ -461,10 +465,13 @@ Examples
         for i in range(length(temp)):
             lowerex.append(round(pnhyper(x,temp[i],N,n),9))
             upperex.append(round(1-pnhyper(x-1,temp[i],N,n),9))
-        lowermin = min(np.where(np.array(lowerex)>alpha)[0])
-        uppermax = max(np.where(np.array(upperex)>alpha)[0])
-        Ml = temp[min(length(temp),lowermin)]
-        Mu = temp[max(1,uppermax)]
+        try:
+            lowermin = min(np.where(np.array(lowerex)>alpha)[0])
+            uppermax = max(np.where(np.array(upperex)>alpha)[0])
+        except:
+            return"Error message:\n NaNs produced."
+        Ml = temp[int(min(length(temp),lowermin))]
+        Mu = temp[int(max(1,uppermax))]
     
     if method == 'LS' or method == 'CC':
         lowerp = max(0.0000001, nuhat-k*senuhat-1/(2*x)*(method == 'CC'))
@@ -483,5 +490,15 @@ Examples
     else:
         return pd.DataFrame({'alpha':[alpha],'P':[P],'rate':[rate],'p.hat':[nuhat],'1-sided.lower':lower,'1-sided.upper':upper})
         
-#print(neghypertolint(50, n=541, N=600, method = 'LS'))
-#print(neghypertolint(50, 20, 100, m = 20, alpha = 0.05, P = 0.95, side = 1, method = "EX"))
+# print(neghypertolint(50, n=23, N=154, method = 'LS', side = 1))
+# print(neghypertolint(50, n=20, N=100, m = 20, method = "LS", side = 1))
+# print(neghypertolint(50, n=23, N=154, method = 'EX', side = 1))
+# print(neghypertolint(50, n=20, N=100, m = 20, method = "EX", side = 1))
+# print(neghypertolint(50, n=23, N=154, method = 'CC', side = 1))
+# print(neghypertolint(50, n=20, N=100, m = 20, method = "CC", side = 2))
+# print(neghypertolint(50, n=23, N=154, method = 'LS', side = 2))
+# print(neghypertolint(50, n=20, N=100, m = 20, method = "LS", side = 2))
+# print(neghypertolint(50, n=23, N=154, method = 'EX', side = 2))
+# print(neghypertolint(50, n=20, N=100, m = 20, method = "EX", side = 2))
+# print(neghypertolint(50, n=23, N=154, method = 'CC', side = 2))
+# print(neghypertolint(50, n=20, N=100, m = 20, method = "CC", side = 2))
