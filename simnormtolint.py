@@ -60,8 +60,7 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
             
             elif method == 'ELL':
                 if f < n**2:
-                    print("The ellison method should only be used for f appreciably larger than n^2")
-                    return None
+                    print("Warning Message:\nThe ellison method should only be used for f appreciably larger than n^2")
                 r = 0.5
                 delta = 1
                 zp = scipy.stats.norm.ppf((1+P)/2)
@@ -80,11 +79,11 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                 def Fun1(z,P,ke,n,f1,delta):
                     return (2 * scipy.stats.norm.cdf(-delta + (ke * np.sqrt(n * z))/(np.sqrt(f1))) - 1) * scipy.stats.chi2.pdf(z,f1) 
                 def Fun2(ke, P, n, f1, alpha, m, delta):
-                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = 1000 * n, args=(P,ke,n,f1,delta),limit = m)
+                    return integrate.quad(Fun1,a = f1 * delta**2/(ke**2 * n), b = np.inf, args=(P,ke,n,f1,delta),limit = m)
                 def Fun3(ke,P,n,f1,alpha,m,delta):
                     f = Fun2(ke = ke, P = P, n = n, f1 = f1, alpha = alpha, m = m, delta = delta)
                     return abs(f[0] - (1-alpha))
-                K = opt.minimize(fun=Fun3, x0=k2, args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
+                K = opt.minimize(fun=Fun3, x0=k2,args=(P,n,f,alpha,m,delta), method = 'L-BFGS-B')['x']
                 return float(K)
             elif method == 'EXACT':
                 def fun1(z,df1,P,X,n):
@@ -94,10 +93,8 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
                     return integrate.quad(fun1,a =0, b = 5, args=(df1,P,X,n),limit=m)
                 def fun3(X,df1,P,n,alpha,m):
                     return np.sqrt(2*n/np.pi)*fun2(X,df1,P,n,alpha,m)[0]-(1-alpha)
-                
                 K = opt.brentq(f=fun3,a=0,b=k2+(1000)/n, args=(f,P,n,alpha,m))
                 return K
-        #TEMP = np.vectorize(Ktemp)
         K = Ktemp(n=n,f=f,alpha=alpha,P=P,method=method,m=m)
     return K
 
@@ -376,25 +373,6 @@ Examples
     else:
         return pd.DataFrame({'alpha':[alpha], 'P':[P], 'xbar':xbar, '2-sided,lower':lower,'2-sided.upper':upper})
 
-# x = np.array([[1,2,3],[3,4,5]])
-# x=[]
-# x.extend(np.random.normal(size=20))
-# x.extend(np.random.normal(size=10,loc=1))
-# x.extend(np.random.normal(size = 12,loc=1,scale=2))
-#x = np.array([1,2,3])
-# acc = 0
-# means = []
-# for i in range(len(x[0])):
-#     for j in range(len(x)):
-#         acc = acc + x[j][i]
-#     means.append(acc/len(x))
-#     acc = 0
 
-#print(means)
-
-#print(simnormtolint(x,method = 'BONF',side = 2))
-
-# x=[[1,2],[3,4]]
-# print(np.log(x))
-# x = [1,2,3,4]
-# print(np.log(x))
+# x = np.array([[1,2,2,3],[3,3,4,5],[10,10,20,25]]).T
+# print(simnormtolint(x,method = 'EXACT',side = 1))
