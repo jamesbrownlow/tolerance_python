@@ -1800,9 +1800,15 @@ Examples
             tolupper = tolout.iloc[:,tolout.columns.get_loc('1-sided.upper')][0]
         fig, axs = plt.subplots(1,2)
         if '1-sided.lower' in tolout.columns:
-            fig.suptitle(f"1-Sided {(1-tolout.iloc[0,0])*100}%/{tolout.iloc[0,1]}% Tolerance Limits")
+            try:
+                fig.suptitle(f"1-Sided {(1-tolout.iloc[:,tolout.columns.get_loc('alpha')][0])*100}%/{tolout.iloc[:,tolout.columns.get_loc('P')][0]*100}% Tolerance Limits")
+            except:
+                fig.suptitle(f"1-Sided (Beta = {(tolout.iloc[:,tolout.columns.get_loc('beta')][0])}) Limit")
         else:
-            fig.suptitle(f"2-Sided {(1-tolout.iloc[0,0])*100}%/{tolout.iloc[0,1]*100}% Tolerance Limits")
+            try:
+                fig.suptitle(f"2-Sided {(1-tolout.iloc[:,tolout.columns.get_loc('alpha')][0])*100}%/{tolout.iloc[:,tolout.columns.get_loc('P')][0]*100}% Tolerance Limits")
+            except:
+                fig.suptitle(f"2-Sided (Beta = {(tolout.iloc[:,tolout.columns.get_loc('beta')][0])}) Limit")
         xs = np.arange(0,length(xdata),1)
         axs[0].scatter(xs,xdata)
         axs[0].axhline(tolupper,color = 'r',ls='dashed',label = 'upper limit')
@@ -1975,12 +1981,27 @@ Examples
 # YLIM = npregtolint(x, y, yhat)
 # plottol(YLIM,xdata=x,y=y,side=1,formula=formula1)
         
-# #1D        
+#1D        
+    ## Example 1
 # xdata = np.random.normal(size = 100)
 # # Example tolerance dataframe
 # tol = pd.DataFrame([0.01, 0.95, 0.0006668252,-1.9643623,1.965696]).T
 # tol.columns = ['alpha','P','mean','2-sided.lower','2-sided.upper']
 # plottol(tol,xdata)
+    ## Example 2
+# xdata = st.cauchy.rvs(size = 1000, loc = 100000, scale = 10)
+# # # Example tolerance dataframe
+# tol = pd.DataFrame([0.05, 0.9,99931.11,100067.9]).T
+# tol.columns = ['alpha','P','2-sided.lower','2-sided.upper']
+# plottol(tol,xdata)
+    ## Example 3
+# xdata = st.expon.rvs(size =100)
+# print(xdata)
+# tol = pd.DataFrame([0.9,0.006914525,0.5901049]).T
+# tol.columns = ['beta','2-sided.lower','2-sided.upper']
+# plottol(tol,xdata)
+
+
 
 # # 2D
 # xdata = [np.random.normal(size = 100,loc=0,scale = 0.2), np.random.normal(size = 100,loc=0,scale = 0.5), np.random.normal(size = 100,loc=5,scale = 1)]
