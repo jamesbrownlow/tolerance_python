@@ -1602,6 +1602,54 @@ Examples
         outtemp = outtemp[0]
     return outtemp
 
+# Need this function to run the 3d graph in plottol
+# https://github.com/CircusMonkey/covariance-ellipsoid/blob/master/ellipsoid.py
+def get_cov_ellipsoid(cov, mu=np.zeros((3)), nstd=3):
+    """
+    Return the 3d points representing the covariance matrix
+    cov centred at mu and scaled by the factor nstd.
+    Plot on your favourite 3d axis. 
+    Example 1:  ax.plot_wireframe(X,Y,Z,alpha=0.1)
+    Example 2:  ax.plot_surface(X,Y,Z,alpha=0.1)
+    """
+    assert cov.shape==(3,3)
+    # Find and sort eigenvalues to correspond to the covariance matrix
+    eigvals, eigvecs = np.linalg.eigh(cov)
+    idx = np.sum(cov,axis=0).argsort()
+    eigvals_temp = eigvals[idx]
+    idx = eigvals_temp.argsort()
+    eigvals = eigvals[idx]
+    eigvecs = eigvecs[:,idx]
+
+    # Set of all spherical angles to draw our ellipsoid
+    n_points = 100
+    theta = np.linspace(0, 2*np.pi, n_points)
+    phi = np.linspace(0, np.pi, n_points)
+
+    # Width, height and depth of ellipsoid
+    rx, ry, rz = nstd * np.sqrt(eigvals)
+
+    # Get the xyz points for plotting
+    # Cartesian coordinates that correspond to the spherical angles:
+    X = rx * np.outer(np.cos(theta), np.sin(phi))
+    Y = ry * np.outer(np.sin(theta), np.sin(phi))
+    Z = rz * np.outer(np.ones_like(theta), np.cos(phi))
+
+    # Rotate ellipsoid for off axis alignment
+    old_shape = X.shape
+    # Flatten to vectorise rotation
+    X,Y,Z = X.flatten(), Y.flatten(), Z.flatten()
+    X,Y,Z = np.matmul(eigvecs, np.array([X,Y,Z]))
+    X,Y,Z = X.reshape(old_shape), Y.reshape(old_shape), Z.reshape(old_shape)
+   
+    # Add in offsets for the mean
+    X = X + mu[0]
+    Y = Y + mu[1]
+    Z = Z + mu[2]
+    return X,Y,Z
+
+    plt.show()
+
 def plottol(tolout, xdata = [1], y = None, side = 1, formula = None):
     '''
 Plotting Capabilities for Tolerance Intervals
@@ -1792,14 +1840,19 @@ Examples
         ax.scatter3D(xdata[0],xdata[1],xdata[2],c=xdata[2])
         title = f"{(1-tolout.columns[0])*100}%/{tolout.index[0]*100}% Tolerance Region"
         ax.set_title(title)
-        Mean = xdata.mean(axis=1)
-        phi = np.linspace(0,2*np.pi, 256).reshape(256, 1) # the angle of the projection in the xy-plane
-        theta = np.linspace(0, np.pi, 256).reshape(-1, 256) # the angle from the polar axis, ie the polar angle
+        #phi = np.linspace(0,2*np.pi, 256).reshape(256, 1) # the angle of the projection in the xy-plane
+        #theta = np.linspace(0, np.pi, 256).reshape(-1, 256) # the angle from the polar axis, ie the polar angle
         # Transformation formulae for a spherical coordinate system.
-        x = Mean[0]+xup*np.sin(theta)*np.cos(phi)
-        y = Mean[1]+yup*np.sin(theta)*np.sin(phi)
-        z = Mean[2]+np.sqrt(tolout.values)*np.cos(theta)
-        ax.plot_surface(x, y, z, color='r',alpha = 0.2)
+        #x = Mean[0]+np.sqrt(xup)*np.sin(theta)*np.cos(phi)
+        #y = Mean[1]+np.sqrt(yup)*np.sin(theta)*np.sin(phi)
+        #z = Mean[2]+np.sqrt(tolout.values)*np.cos(theta)
+        #mu1_ = xdata.mean(axis=1)
+        #cov1_ = np.cov(xdata)
+        #X1,Y1,Z1 = get_cov_ellipsoid(cov1_, mu1_, nstd=np.sqrt(7.383685))
+        Mean = xdata.mean(axis=1)
+        Sigma = np.cov(xdata)
+        X,Y,Z = get_cov_ellipsoid(Sigma, Mean, nstd=np.sqrt(tolout.values[0][0]))
+        ax.plot_surface(X, Y, Z, color='r',alpha = 0.2)
         plt.show()
     elif y is not None and length(y) > 2 and formula is None and type(tolout) is not dict:
         print("This only works when the forumula is a single linear model of the form y = b0 + b1*x")
@@ -1881,17 +1934,7 @@ Examples
         for i in range(dictlen):
             axs[i].vlines(x=ranges[i],ymin=ymins[i],ymax=ymaxs[i],color = 'r',lw=0.5)
 
-            
         
-        
-                
-        
-        
-            
-        
-        
-        
-    
 # #ANOVA
 # #data equivalent to warpbreaks in R
 # breaks = ('26 30 54 25 70 52 51 26 67 18 21 29 17 12 18 35 30 36 36 21 24 18 10 43 28 15 26 27 14 29 19 29 31 41 20 44 42 26 19 16 39 28 21 39 29 20 21 24 17 13 15 15 16 28'.split(" "))
@@ -1940,7 +1983,6 @@ Examples
 # plottol(tol,xdata)
 
 # # 2D
-#possibily could be better
 # xdata = [np.random.normal(size = 100,loc=0,scale = 0.2), np.random.normal(size = 100,loc=0,scale = 0.5), np.random.normal(size = 100,loc=5,scale = 1)]
 # # Example tolerance dataframe
 # tol = pd.DataFrame([7.383685]).T
