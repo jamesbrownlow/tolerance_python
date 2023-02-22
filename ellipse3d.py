@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 #Similar to ellipse3d() in R. 
+# Need this function to plot the 3d tolerance region for mvtolregion
 def ellipse3d(x, centre = np.zeros((3)), t = 3, smoothness = 1):
     """
 Return the 3d points representing the covariance matrix x centred at centre 
@@ -32,7 +33,7 @@ Parameters
 
 Returns
 -------
-    get_cov_ellipsoid returns X, Y, and Z parameters intended to be used
+    ellipse3d returns X, Y, and Z parameters intended to be used
     on 3d plots such as ax.plot_wireframe() and ax.plot_surface()
 
 References
