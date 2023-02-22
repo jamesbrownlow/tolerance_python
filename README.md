@@ -7,5 +7,4 @@ The package answers the practical question: "I have (1-α)*100% confidence that 
 
 Notes:
 - The gamtolint and cautolint files are slightly different than the R equivalent, this is due to R using the Newton minimization method and the Python code uses the Quasi Newton BFGS minimization method. Both methods use nonlinear minimization. The Quasi Newton method does not require solving a linear system of equations, it does not require a second derivative, and it's faster relative to the Newton method. One downside of the Quasi Newton method as opposed to the Newton method is that the Quasi Newton method has a less precise convergence path. 
-- npmvtolregion has some errors. 
-- plottol_2 isn't 1-1 with the R equivalent. It cannot handle anova and polynomial regression yet. 
+- npmvtolregion may have some unknown errors. 
