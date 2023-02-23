@@ -208,7 +208,8 @@ Examples
     p = len(x.iloc[0]) #ROWS
     if method == 'KM':
         qsquared = st.chi2.rvs(df=1,size = p*B)/n
-        shape = (int(p*B/2),p)
+        shape = (int(p*B/length(x.iloc[0])),p)
+        print(shape)
         qsquared = qsquared.reshape(shape)
         L = []
         for i in range(B):
@@ -346,14 +347,17 @@ Examples
 
 # Plist = [0.99,0.98]
 # alphalist = [0.01,0.05,0.1]
-# x1 = [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 3, 10, 8, 2, 
-#       11, 4, 16, 13, 17, 1, 7, 1, 1, 8, 19, 27, 2, 7, 7, 3, 1,
-#       15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8,12,7,8,15]
-# x2 = [9, 1, 4, 5, 11, 5, 1, 5, 5, 4, 10, 1,
-#       12, 1, 3, 4, 2, 9, 2, 1, 5, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
-#       10, 2, 1, 2, 17, 4, 3, 2, 8, 2, 12, 6, 1, 5, 1,
-#       5, 23, 3, 3, 14, 6]
-# x = pd.DataFrame({'x1':x1,'x2':x2})
+# # x1 = [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 3, 10, 8, 2, 
+# #       11, 4, 16, 13, 17, 1, 7, 1, 1, 8, 19, 27, 2, 7, 7, 3, 1,
+# #       15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8,12,7,8,15]
+# # x2 = [9, 1, 4, 5, 11, 5, 1, 5, 5, 4, 10, 1,
+# #       12, 1, 3, 4, 2, 9, 2, 1, 5, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
+# #       10, 2, 1, 2, 17, 4, 3, 2, 8, 2, 12, 6, 1, 5, 1,
+# #       5, 23, 3, 3, 14, 6]
+# x1 = np.random.normal(0,0.2,size = 1000)
+# x2 = np.random.normal(0,0.5,size = 1000)
+# x3 = np.random.normal(5,1,size = 1000)
+# x = pd.DataFrame({'x1':x1,'x2':x2,'x3':x3})
 # print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'KM'))
 # print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'AM'))
 # print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'GM'))
@@ -361,4 +365,4 @@ Examples
 # print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'MHM'))
 # print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'V11'))
 # print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'HM.V11'))
-#print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'MC'))
+# print(mvtolregion(x, alpha = alphalist, P = Plist, B = 1020, M = 1010, method = 'MC'))
