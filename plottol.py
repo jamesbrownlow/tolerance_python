@@ -1650,7 +1650,7 @@ def get_cov_ellipsoid(cov, mu=np.zeros((3)), nstd=3):
 
     plt.show()
 
-def plottol(tolout, xdata = [1], y = None, side = 1, formula = None):
+def plottol(tolout, xdata = [1], y = None, side = 1, formula = None, xlab = 'X', ylab = 'Y', zlab = 'Z'):
     '''
 Plotting Capabilities for Tolerance Intervals
 
@@ -1837,9 +1837,9 @@ Examples
             yup = yup.iloc[0,yup.columns.get_loc('1-sided.upper')]
         fig = plt.figure()
         ax = fig.add_subplot(111,projection = '3d')
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
+        ax.set_xlabel(xlab)
+        ax.set_ylabel(ylab)
+        ax.set_zlabel(zlab)
         ax.set_xlim([min(xdata[0]),max(xdata[0])])
         ax.set_ylim([min(xdata[1]),max(xdata[1])])
         ax.set_zlim([min(xdata[2]),max(xdata[2])])
@@ -1877,28 +1877,29 @@ Examples
         plt.plot(xx,fxx, color = 'r', label = "Upper Limit", ls = ':')
         plt.plot(w,fw, color = 'r', label = 'Lower Limit',ls='dashed')
         plt.title(f"{(1-tolout.iloc[0,0])*100}%/{tolout.iloc[0,1]*100}% Tolerance Limits")
-        plt.xlabel('X')
-        plt.ylabel('Y')
+        plt.xlabel(xlab)
+        plt.ylabel(ylab)
         plt.show()
     elif formula is not None and type(tolout) is not dict:
         xdata = pd.DataFrame(xdata)
+        out1 = pd.concat([xdata,pd.DataFrame(y)],axis=1)
+        out1.columns = ['XX','YY']
+        out1 = out1.sort_values(by=['YY'])
+        out1.index = range(length(out1.iloc[:,0]))
+        out1 = pd.concat([out1.iloc[:,0],tolout.iloc[:length(x)]],axis=1)
+        out1 = out1.sort_values(by=['XX'])
+        out1.index = range(length(out1.iloc[:,0]))
         if length(tolout.iloc[0]) == 6:
-            popt, pcov = curve_fit(formula, xdata=sorted(xdata.iloc[:,0],reverse=True), ydata=tolout.iloc[:,4],maxfev=2000)
-            plt.plot(sorted(xdata.iloc[:,0]),formula(np.sort(xdata.iloc[:,0]), *popt),color = 'r',ls='--', label = 'Lower Limit')
-            popt, pcov = curve_fit(formula, xdata=xdata.iloc[:,0], ydata=y)
-            plt.plot(sorted(xdata.iloc[:,0]),formula(np.sort(xdata.iloc[:,0]), *popt),color = 'black',ls='-', label = 'Best Fit Line')
-            popt, pcov = curve_fit(formula, xdata=sorted(xdata.iloc[:,0],reverse=True), ydata=tolout.iloc[:,5],maxfev=2000)
-            plt.plot(sorted(xdata.iloc[:,0]),formula(np.sort(xdata.iloc[:,0]), *popt),color = 'r',ls='-.',label = "Upper Limit")
+            plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'r', ls='-.', label = '1-Sided Lower Limit')
+            plt.plot(out1.iloc[:,0],out1.iloc[:,3], color = 'black', ls='-', label = 'Best Fit Line')
+            plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='--', label = '1-Sided Upper Limit')
         elif length(tolout.iloc[0]) == 7:
-            popt, pcov = curve_fit(formula, xdata=sorted(xdata.iloc[:,0],reverse=False), ydata=tolout.iloc[:,5],maxfev=5000)
-            plt.plot(sorted(xdata.iloc[:,0]),formula(np.sort(xdata.iloc[:,0]), *popt),color = 'r',ls='--', label = 'Lower Limit')
-            popt, pcov = curve_fit(formula, xdata=xdata.iloc[:,0], ydata=y,maxfev=5000)
-            plt.plot(sorted(xdata.iloc[:,0]),formula(np.sort(xdata.iloc[:,0]), *popt),color = 'black',ls='-', label = 'Best Fit Line')
-            popt, pcov = curve_fit(formula, xdata=sorted(xdata.iloc[:,0],reverse=False), ydata=tolout.iloc[:,6],maxfev=5000)
-            plt.plot(sorted(xdata.iloc[:,0]),formula(np.sort(xdata.iloc[:,0]), *popt),color = 'r',ls='-.',label = "Upper Limit")
+            plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='-.', label = '1-Sided Lower Limit')
+            plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'black', ls='-', label = 'Best Fit Line')
+            plt.plot(out1.iloc[:,0],out1.iloc[:,7], color = 'r', ls='--', label = '1-Sided Upper Limit')
         plt.title(f"{(1-tolout.iloc[0,0])*100}%/{tolout.iloc[0,1]*100}% Tolerance Limits")
-        plt.xlabel('X')
-        plt.ylabel('Y')
+        plt.xlabel(xlab)
+        plt.ylabel(ylab)
         plt.scatter(xdata.iloc[:,0],y)
         plt.legend(loc = 0, bbox_to_anchor=(1.04, 1))
         plt.show()
@@ -1955,15 +1956,18 @@ Examples
 ## Nonlinear regression
     ## Example 1
 # np.random.seed(1)
-# def formula1(x, b1, b2,b3):
+# def formula1(x, b1, b2):
 #     try:
 #         #make this the regular function using numpy
-#         return b1 + (0.49-b1)*np.exp(-b2*(x-8)) + b3**b3
+#         return b1 + (0.49-b1)*np.exp(-b2*(x-8))
 #     except:
 #         #make this the symbolic version of the function using sympy
-#         return b1 + (0.49-b1)*sp.exp(-b2*(x-8)) + b3**b3
-# x = pd.DataFrame(st.uniform.rvs(size=50, loc=5, scale=45))
-# y = formula1(x.iloc[:,0], 0.39, 0.11,0.01) + st.norm.rvs(size = length(x), scale = 0.01) #response
+#         return b1 + (0.49-b1)*sp.exp(-b2*(x-8)) 
+# #x = pd.DataFrame(st.uniform.rvs(size=10, loc=5, scale=45))
+# x = pd.DataFrame(np.array([23.9, 35.8, 14.2, 44.5, 6.2, 35.2, 23.8, 30.1, 11.3, 13.9]))
+# #y = formula1(x.iloc[:,0], 0.39, 0.11) + st.norm.rvs(size = length(x), scale = 0.01) #response
+# #print(y)
+# y = pd.Series(np.array([.42, .39, .44, .38, .52, .37, .43, .39, .46, .44]))
 # xy = pd.concat([y,x],axis=1)
 # xy.columns = ['y','x']
 # YLIM = nonlinregtolint(formula1, xydata=xy,alpha = 0.05, P = 0.99, side = 2)
@@ -1977,7 +1981,7 @@ Examples
 # yhat = []
 # for a in x:
 #     yhat.append(loess.estimate(a, window = 8, use_matrix = False, 
-#                                degree = 2))
+#                                 degree = 2))
 # YLIM = npregtolint(x, y, yhat)
 # plottol(YLIM,xdata=x,y=y,side=1,formula=formula1)
         
@@ -2011,9 +2015,9 @@ Examples
 # tol.index = [0.9]
 # plottol(tol,xdata)
 
-# #Regression
-# x = np.random.uniform(10, size = 100)
-# y = 20 + 5*x+np.random.normal(3,size =100)
+# #Linear Regression
+#x = np.random.uniform(10, size = 5)
+#y = 20 + 5*x+np.random.normal(3,size =5)
 # data = pd.concat([pd.DataFrame(x),pd.DataFrame(y)],axis = 1)
 # out = regtolint(reg = ols('y~x',data = data).fit(), DataFrame = data, side = 2, alpha = 0.05, P = 0.95)
-# plottol(tolout = out, xdata=x, y=y)
+# plottol(tolout = out, xdata=x, y=y, xlab = 'Explanatory', ylab='Response')
