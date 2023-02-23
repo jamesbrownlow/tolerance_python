@@ -16,14 +16,29 @@ def Kfactor(n, f = None, alpha = 0.05, P = 0.99, side = 1, method = 'HE', m=50):
     if (side != 1) and (side != 2):
         return 'Must specify one sided or two sided procedure'
     if side ==1:
-        zp = scipy.stats.norm.ppf(P)
-        ncp = np.sqrt(n)*zp
-        ta = scipy.stats.nct.ppf(1-alpha,df = f, nc=ncp) #students t noncentralized
-        K = ta/np.sqrt(n)
+        if method == 'AFIT':
+            zp = scipy.stats.norm.ppf(P)
+            zp2 = zp**2
+            za2 = scipy.stats.norm.ppf(alpha)**2
+            a = 1 - (za2)/(2*(n-1))
+            b = zp2 - (za2/n)
+            K = (zp+np.sqrt(zp2-a*b))/(a)
+        else:
+            zp = scipy.stats.norm.ppf(P)
+            ncp = np.sqrt(n)*zp
+            ta = scipy.stats.nct.ppf(1-alpha,df = f, nc=ncp) #students t noncentralized
+            K = ta/np.sqrt(n)
     else:
         def Ktemp(n, f, alpha, P, method, m):
             chia = scipy.stats.chi2.ppf(alpha, df = f)
             k2 = np.sqrt(f*scipy.stats.ncx2.ppf(P,df=1,nc=(1/n))/chia) #noncentralized chi 2 (ncx2))
+            if method == 'AFIT':
+                zomp = -scipy.stats.norm.ppf((1-P)/2)
+                v = f
+                opon = (1+(1/n))
+                chi2 = scipy.stats.chi2.ppf(1-alpha,v)
+                k2 = zomp*np.sqrt((v*opon)/(chi2))
+                return k2
             if method == 'HE':
                 def TEMP4(n, f, P, alpha):
                     chia =  scipy.stats.chi2.ppf(alpha, df = f)
@@ -130,9 +145,10 @@ Parameters
         The method for calculating the k-factors. The k-factor for the 1-sided 
         tolerance intervals is performed exactly and thus is the same for the 
         chosen method. 
-        
-            "HE" is the Howe method and is often viewed as being extremely 
-            accurate, even for small sample sizes. 
+            "AFIT" is the Air Force Institute of Technology's Howe method. 
+            
+            "HE" is the general Howe method and is often viewed as being 
+            extremely accurate, even for small sample sizes. 
         
             "HE2" is a second method due to Howe, which performs similarly to the 
             Weissberg-Beatty method, but is computationally simpler. 
@@ -239,16 +255,17 @@ Examples
         temp = pd.DataFrame([[alpha,P, xbar,lower,upper]],columns=['alpha','P','mean','2-sided.lower','2-sided.upper'])
         return temp
 
-x =  [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 3, 10, 8, 2, 
-                  11, 4, 16, 13, 17, 1, 7, 1, 1, 8, 19, 27, 2, 7, 7, 3, 1,
-                  15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8, 12, 6, 1, 5, 1,
-                  5, 23, 3, 3, 14, 6, 9, 1, 4, 5, 11, 5, 1, 5, 5, 4, 10, 1,
-                  12, 1, 3, 4, 2, 9, 2, 1, 5, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
-                  10, 2, 1, 2, 17, 4, 3, 2, 8, 2]
+# x =  [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 3, 10, 8, 2, 
+#                   11, 4, 16, 13, 17, 1, 7, 1, 1, 8, 19, 27, 2, 7, 7, 3, 1,
+#                   15, 1, 16, 9, 9, 7, 29, 3, 10, 3, 1, 20, 8, 12, 6, 1, 5, 1,
+#                   5, 23, 3, 3, 14, 6, 9, 1, 4, 5, 11, 5, 1, 5, 5, 4, 10, 1,
+#                   12, 1, 3, 4, 2, 9, 2, 1, 5, 6, 8, 2, 1, 1, 1, 4, 6, 7, 26, 
+#                   10, 2, 1, 2, 17, 4, 3, 2, 8, 2]
+#x = scipy.stats.norm.rvs(size = 100000)
 
 # F = False
 # T = True
-# print(normtolint(x, alpha = 0.05, P = 0.95, side = 2, method = "HE", lognorm = F))
+#print(normtolint(x, alpha = 0.05, P = 0.95, side = 2, method = "AFIT", lognorm = F))
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 2, method = "HE", lognorm = T))
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 2, method = "HE2", lognorm = F))
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 2, method = "HE2", lognorm = T))
@@ -264,7 +281,7 @@ x =  [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 3, 10, 8, 2,
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 2, method = "OCT", lognorm = F))
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 2, method = "OCT", lognorm = T))
 
-# print(normtolint(x, alpha = 0.05, P = 0.95, side = 1, method = "HE", lognorm = F))
+#print(normtolint(x, alpha = 0.05, P = 0.95, side = 1, method = "HE", lognorm = F))
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 1, method = "HE", lognorm = T))
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 1, method = "HE2", lognorm = F))
 # print(normtolint(x, alpha = 0.05, P = 0.95, side = 1, method = "HE2", lognorm = T))
