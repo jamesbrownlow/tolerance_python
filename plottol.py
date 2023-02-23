@@ -1650,7 +1650,7 @@ def get_cov_ellipsoid(cov, mu=np.zeros((3)), nstd=3):
 
     plt.show()
 
-def plottol(tolout, xdata = [1], y = None, side = 1, formula = None, xlab = 'X', ylab = 'Y', zlab = 'Z'):
+def plottol(tolout, xdata = [1], y = None, side = 1, NonLinReg = False, xlab = 'X', ylab = 'Y', zlab = 'Z'):
     '''
 Plotting Capabilities for Tolerance Intervals
 
@@ -1686,8 +1686,8 @@ Parameters
         output in tolout. side = 1 produces plots showing the upper tolerance 
         bounds and lower tolerance bounds.
     
-    formula: ols object, optional
-        A nonlinear model formula including variables and parameters.
+    NonLinReg: bool, optional
+        True if user wants to do nonlinear regression, otherwise False.
     
     anova: dictionary, optional
         Dictionary with multiple ANOVA outputs from the anovatolint function.
@@ -1789,7 +1789,7 @@ Examples
         xdata = np.array(xdata)
     if type(xdata) is list:
         xdata = np.array(xdata)
-    if xdata.ndim == 1 and y is None and formula is None and type(tolout) is not dict:
+    if xdata.ndim == 1 and y is None and NonLinReg == False and type(tolout) is not dict:
         if '2-sided.lower' in tolout.columns:
             tollower = tolout.iloc[:,tolout.columns.get_loc('2-sided.lower')][0]
         if '2-sided.upper' in tolout.columns:
@@ -1818,7 +1818,7 @@ Examples
         axs[1].axvline(tollower,color = 'r',ls='dashdot',label = 'lower limit')
         axs[1].legend(loc = 0,title = "Limits", bbox_to_anchor=(1.04, 1))
     
-    elif xdata.ndim == 2 and formula is None and type(tolout) is not dict:
+    elif xdata.ndim == 2 and NonLinReg == False and type(tolout) is not dict:
         if '1-sided.lower' in tolout.columns:
             side = 1
         elif '2-sided.lower' in tolout.columns:
@@ -1860,7 +1860,7 @@ Examples
         X,Y,Z = get_cov_ellipsoid(Sigma, Mean, nstd=np.sqrt(tolout.values[0][0]))
         ax.plot_surface(X, Y, Z, color='r',alpha = 0.2)
         plt.show()
-    elif y is not None and length(y) > 2 and formula is None and type(tolout) is not dict:
+    elif y is not None and length(y) > 2 and NonLinReg == False and type(tolout) is not dict:
         print("This only works when the forumula is a single linear model of the form y = b0 + b1*x")
         plt.scatter(xdata,y,color = 'black', linewidths = 1)
         df = pd.concat([pd.DataFrame(xdata),pd.DataFrame(y)],axis=1)
@@ -1880,13 +1880,13 @@ Examples
         plt.xlabel(xlab)
         plt.ylabel(ylab)
         plt.show()
-    elif formula is not None and type(tolout) is not dict:
+    elif NonLinReg and type(tolout) is not dict:
         xdata = pd.DataFrame(xdata)
         out1 = pd.concat([xdata,pd.DataFrame(y)],axis=1)
         out1.columns = ['XX','YY']
         out1 = out1.sort_values(by=['YY'])
         out1.index = range(length(out1.iloc[:,0]))
-        out1 = pd.concat([out1.iloc[:,0],tolout.iloc[:length(x)]],axis=1)
+        out1 = pd.concat([out1.iloc[:,0],tolout.iloc[:length(xdata)]],axis=1)
         out1 = out1.sort_values(by=['XX'])
         out1.index = range(length(out1.iloc[:,0]))
         if length(tolout.iloc[0]) == 6:
@@ -1971,7 +1971,7 @@ Examples
 # xy = pd.concat([y,x],axis=1)
 # xy.columns = ['y','x']
 # YLIM = nonlinregtolint(formula1, xydata=xy,alpha = 0.05, P = 0.99, side = 2)
-# plottol(YLIM,xdata=x,y=y,side=1,formula=formula1)
+# plottol(YLIM,xdata=x,y=y,side=1,NonLinReg = True)
     ## Example 2
 # x = np.array([5,10,12,7,40,27,12,30,22,32,44,9,17,25,33,12])
 # def formula1(x,b):
@@ -1983,7 +1983,7 @@ Examples
 #     yhat.append(loess.estimate(a, window = 8, use_matrix = False, 
 #                                 degree = 2))
 # YLIM = npregtolint(x, y, yhat)
-# plottol(YLIM,xdata=x,y=y,side=1,formula=formula1)
+# plottol(YLIM,xdata=x,y=y,side=1,NonLinReg = True)
         
 #1D        
     ## Example 1
