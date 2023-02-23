@@ -1817,44 +1817,43 @@ Examples
         axs[1].axvline(tolupper,color = 'r',ls='dashed',label = 'upper limit')
         axs[1].axvline(tollower,color = 'r',ls='dashdot',label = 'lower limit')
         axs[1].legend(loc = 0,title = "Limits", bbox_to_anchor=(1.04, 1))
-    
-    elif xdata.ndim == 2 and NonLinReg == False and type(tolout) is not dict:
-        if '1-sided.lower' in tolout.columns:
-            side = 1
-        elif '2-sided.lower' in tolout.columns:
-            side = 2
-        else:
-            side = side 
-        if side == 2:
-            xup = normtolint(xdata[0],side = side,alpha = tolout.columns[0], P = tolout.index[0])
-            xup = xup.iloc[0,xup.columns.get_loc('2-sided.upper')]
-            yup = normtolint(xdata[1],side = side,alpha = tolout.columns[0], P = tolout.index[0])
-            yup = yup.iloc[0,yup.columns.get_loc('2-sided.upper')]
-        else:
-            xup = normtolint(xdata[0],side = side,alpha = tolout.columns[0], P = tolout.index[0])
-            xup = xup.iloc[0,xup.columns.get_loc('1-sided.upper')]
-            yup = normtolint(xdata[1],side = side,alpha = tolout.columns[0], P = tolout.index[0])
-            yup = yup.iloc[0,yup.columns.get_loc('1-sided.upper')]
+    elif length(xdata) == 2 and NonLinReg == False and type(tolout) is not dict:
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        ax.set_xlabel(xlab)
+        ax.set_ylabel(ylab)
+        #ax.set_xlim([min(xdata[0]),max(xdata[0])])
+        #ax.set_ylim([min(xdata[1]),max(xdata[1])])
+        ax.scatter(xdata[0],xdata[1])
+        title = f"{(1-tolout.columns[0])*100}%/{tolout.index[0]*100}% Tolerance Region"
+        ax.set_title(title)
+        mu = xdata.mean(axis=1)
+        sigma = np.cov(xdata)
+        es = np.linalg.eigh(sigma)
+        evals = es[0][::-1]
+        evecs = es[1]
+        evecs = [e[::-1] for e in evecs]
+        e1 = np.dot(evecs,np.diag(np.sqrt(evals)))
+        theta = np.linspace(0,2*np.pi, 1000)
+        r1 = np.sqrt(tolout.values[0][0])
+        v1 = pd.concat([pd.DataFrame(r1*np.cos(theta)),pd.DataFrame(r1*np.sin(theta))],axis=1)
+        mu = np.expand_dims(mu,axis=-1)
+        pts = pd.DataFrame((mu - np.dot(e1,v1.T)).T)
+        ax.autoscale(enable=True)
+        ax.plot(pts[0],pts[1],color='r',lw=0.5)
+    elif length(xdata) == 3 and NonLinReg == False and type(tolout) is not dict:
         fig = plt.figure()
         ax = fig.add_subplot(111,projection = '3d')
         ax.set_xlabel(xlab)
         ax.set_ylabel(ylab)
         ax.set_zlabel(zlab)
-        ax.set_xlim([min(xdata[0]),max(xdata[0])])
-        ax.set_ylim([min(xdata[1]),max(xdata[1])])
-        ax.set_zlim([min(xdata[2]),max(xdata[2])])
+        # ax.set_xlim([min(xdata[0]),max(xdata[0])])
+        # ax.set_ylim([min(xdata[1]),max(xdata[1])])
+        # ax.set_zlim([min(xdata[2]),max(xdata[2])])
+        ax.autoscale(enable=True)
         ax.scatter3D(xdata[0],xdata[1],xdata[2],c=xdata[2])
         title = f"{(1-tolout.columns[0])*100}%/{tolout.index[0]*100}% Tolerance Region"
         ax.set_title(title)
-        #phi = np.linspace(0,2*np.pi, 256).reshape(256, 1) # the angle of the projection in the xy-plane
-        #theta = np.linspace(0, np.pi, 256).reshape(-1, 256) # the angle from the polar axis, ie the polar angle
-        # Transformation formulae for a spherical coordinate system.
-        #x = Mean[0]+np.sqrt(xup)*np.sin(theta)*np.cos(phi)
-        #y = Mean[1]+np.sqrt(yup)*np.sin(theta)*np.sin(phi)
-        #z = Mean[2]+np.sqrt(tolout.values)*np.cos(theta)
-        #mu1_ = xdata.mean(axis=1)
-        #cov1_ = np.cov(xdata)
-        #X1,Y1,Z1 = get_cov_ellipsoid(cov1_, mu1_, nstd=np.sqrt(7.383685))
         Mean = xdata.mean(axis=1)
         Sigma = np.cov(xdata)
         X,Y,Z = get_cov_ellipsoid(Sigma, Mean, nstd=np.sqrt(tolout.values[0][0]))
@@ -1942,8 +1941,8 @@ Examples
             axs[i].vlines(x=ranges[i],ymin=ymins[i],ymax=ymaxs[i],color = 'r',lw=0.5)
 
         
-# #ANOVA
-# #data equivalent to warpbreaks in R
+# ANOVA
+# data equivalent to warpbreaks in R
 # breaks = ('26 30 54 25 70 52 51 26 67 18 21 29 17 12 18 35 30 36 36 21 24 18 10 43 28 15 26 27 14 29 19 29 31 41 20 44 42 26 19 16 39 28 21 39 29 20 21 24 17 13 15 15 16 28'.split(" "))
 # breaks = [float(a) for a in breaks]
 # wool = 'A A A A A A A A A A A A A A A A A A A A A A A A A A A B B B B B B B B B B B B B B B B B B B B B B B B B B B'.split(' ')
@@ -1964,13 +1963,14 @@ Examples
 #         #make this the symbolic version of the function using sympy
 #         return b1 + (0.49-b1)*sp.exp(-b2*(x-8)) 
 # #x = pd.DataFrame(st.uniform.rvs(size=10, loc=5, scale=45))
-# x = pd.DataFrame(np.array([23.9, 35.8, 14.2, 44.5, 6.2, 35.2, 23.8, 30.1, 11.3, 13.9]))
+# x = pd.DataFrame(np.array([44.5, 1.1, 6.2, 35.2, 23.8, 30.1, 13.9]))
 # #y = formula1(x.iloc[:,0], 0.39, 0.11) + st.norm.rvs(size = length(x), scale = 0.01) #response
 # #print(y)
-# y = pd.Series(np.array([.42, .39, .44, .38, .52, .37, .43, .39, .46, .44]))
+# y = pd.Series(np.array([.38,.58, .54, .37, .43, .39, .44]))
 # xy = pd.concat([y,x],axis=1)
 # xy.columns = ['y','x']
 # YLIM = nonlinregtolint(formula1, xydata=xy,alpha = 0.05, P = 0.99, side = 2)
+# print(YLIM)
 # plottol(YLIM,xdata=x,y=y,side=1,NonLinReg = True)
     ## Example 2
 # x = np.array([5,10,12,7,40,27,12,30,22,32,44,9,17,25,33,12])
@@ -2007,12 +2007,31 @@ Examples
 
 
 
-# # 2D
+# # 3D
 # xdata = [np.random.normal(size = 100,loc=0,scale = 0.2), np.random.normal(size = 100,loc=0,scale = 0.5), np.random.normal(size = 100,loc=5,scale = 1)]
 # # Example tolerance dataframe
 # tol = pd.DataFrame([7.383685]).T
 # tol.columns = [0.1]
 # tol.index = [0.9]
+# plottol(tol,xdata)
+# np.random.seed(1)
+# x1 = np.random.normal(0,0.2,size = 1000)
+# x2 = np.random.normal(0,0.5,size = 1000)
+# x3 = np.random.normal(5,1,size = 1000)
+# xdata = [x1,x2,x3]
+# tol = pd.DataFrame([11.814179]).T
+# tol.columns = [0.01]
+# tol.index = [0.99]
+# plottol(tol,xdata)
+
+# # 2D
+# np.random.seed(1)
+# x1 = np.random.normal(0,0.2,size = 1000)
+# x2 = np.random.normal(0,0.5,size = 1000)
+# xdata = [x1,x2]
+# tol = pd.DataFrame([9.635502]).T
+# tol.columns = [0.1]
+# tol.index = [0.99]
 # plottol(tol,xdata)
 
 # #Linear Regression
