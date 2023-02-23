@@ -209,7 +209,6 @@ Examples
     if method == 'KM':
         qsquared = st.chi2.rvs(df=1,size = p*B)/n
         shape = (int(p*B/length(x.iloc[0])),p)
-        print(shape)
         qsquared = qsquared.reshape(shape)
         L = []
         for i in range(B):
@@ -344,7 +343,7 @@ Examples
         
         
     return tol
-
+# np.random.seed(1)
 # Plist = [0.99,0.98]
 # alphalist = [0.01,0.05,0.1]
 # # x1 = [6, 2, 1, 4, 8, 3, 3, 14, 2, 1, 21, 5, 18, 2, 3, 10, 8, 2, 
