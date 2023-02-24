@@ -809,10 +809,13 @@ Examples
     else:
         n = newn
         delta = float(delta)
-    return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':[int(n)]})
+    try:
+        return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':[int(n)]})
+    except:
+        return pd.DataFrame({'alpha':[alpha],'P':[P],'delta':[delta],'P.prime':[Pprime],'n':np.inf})
 
-
-#print(normss(alpha = 0.05, P = 0.99, side = 2, spec = [-3,3],method = 'DIR', mu0 = 0, sig20 = 1,fast = False))
+#help(normss)
+#print(normss(alpha = 0.1, P = 0.9, side = 1, spec = [-2,2],method = 'DIR', mu0 = 0, sig20 = 1,fast = False))
 
 
 
