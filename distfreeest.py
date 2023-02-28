@@ -53,6 +53,66 @@ def distfreeest2(n = None, alpha = None, P = None, side = 1):
     return ret
 
 def distfreeest(n = None, alpha = None, P = None, side = 1):
+    '''
+Estimating Various Quantities for Distribution-Free Tolerance Intervals
+
+Description
+    When providing two of the three quantities n, alpha, and P, this function 
+    solves for the third quantity in the context of distribution-free 
+    tolerance intervals.
+
+Usage
+    distfreeest(n = None, alpha = None, P = NULL, side = 1)
+
+Parameters
+----------
+    n : int or list of ints, optional
+        The necessary sample size to cover a proportion P of the population 
+        with confidence 1-alpha. Can be a vector. The default is None.
+        
+    alpha : float or list of floats, optional
+        1 minus the confidence level attained when it is desired to cover a 
+        proportion P of the population and a sample size n is provided. Can be
+        a vector. The default is None.
+        
+    P : float or list of floats, optional
+        The proportion of the population to be covered with confidence 1-alpha 
+        when a sample size n is provided. Can be a vector. The default is None.
+        
+    side : 1 or 2, optional
+        Whether a 1-sided or 2-sided tolerance interval is assumed 
+        (determined by side = 1 or side = 2, respectively). The default is 1.
+
+Returns
+-------
+    out : dataframe
+        When providing two of the three quantities n, alpha, and P, 
+        distfreeest returns the third quantity. If more than one value of a 
+        certain quantity is specified, then a table will be returned.
+        
+References
+    Natrella, M. G. (1963), Experimental Statistics: National Bureau of 
+        Standards - Handbook No. 91, United States Government Printing Office,
+        Washington, D.C.
+    
+Examples
+    # Solving for 1 minus the confidence level.
+
+        distfreeest(n = 59, P = 0.95, side = 1)
+    
+    ## Solving for the sample size.
+    
+        distfreeest(alpha = 0.05, P = 0.95, side = 1)
+    
+    ## Solving for the proportion of the population to cover.
+    
+        distfreeest(n = 59, alpha = 0.05, side = 1)
+    
+    ## Solving for sample sizes for many tolerance specifications.
+    
+        distfree.est((alpha = [0.01,0.02,0.05], P = [0.95,0.99],side = 2)
+
+    '''
     if n == None:
         if type(alpha) == float:
             alpha = [alpha]
@@ -94,7 +154,7 @@ def distfreeest(n = None, alpha = None, P = None, side = 1):
             n = [n]
         A = length(alpha)
         B = length(n)
-        print(f'length of alpha = {A}',f'length of n = {B}')
+        #print(f'length of alpha = {A}',f'length of n = {B}')
         column_names = np.zeros(B)
         row_names = np.zeros(A)
         matrix = np.zeros((A,B))
@@ -106,4 +166,7 @@ def distfreeest(n = None, alpha = None, P = None, side = 1):
         out = pd.DataFrame(matrix,columns = column_names, index = row_names)
     return out
 
-
+# print(distfreeest(n = 59, P = 0.95, side = 1))
+# print(distfreeest(alpha = 0.05, P = 0.95, side = 1))
+# print(distfreeest(n = 59, alpha = 0.05, side = 1))
+#print(distfreeest(alpha = [0.01,0.02,0.05], P = [0.95,0.99],side = 2))
