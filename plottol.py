@@ -1650,7 +1650,7 @@ def get_cov_ellipsoid(cov, mu=np.zeros((3)), nstd=3):
 
     plt.show()
 
-def plottol(tolout, xdata = [1], y = None, side = 1, NonLinReg = False, xlab = 'X', ylab = 'Y', zlab = 'Z'):
+def plottol(tolout, xdata = [1], y = None, side = 1, NonLinReg = False, xlab = 'X', ylab = 'Y', zlab = 'Z',title = None):
     '''
 Plotting Capabilities for Tolerance Intervals
 
@@ -1795,6 +1795,7 @@ Examples
         if '2-sided.upper' in tolout.columns:
             tolupper = tolout.iloc[:,tolout.columns.get_loc('2-sided.upper')][0]
         if '1-sided.lower' in tolout.columns:
+            print("NOTE: The plot reflects two 1-sided tolerance intervals and NOT a 2-sided tolerance interval!")
             tollower = tolout.iloc[:,tolout.columns.get_loc('1-sided.lower')][0]
         if '1-sided.upper' in tolout.columns:
             tolupper = tolout.iloc[:,tolout.columns.get_loc('1-sided.upper')][0]
@@ -1824,8 +1825,8 @@ Examples
         ax.set_ylabel(ylab)
         #ax.set_xlim([min(xdata[0]),max(xdata[0])])
         #ax.set_ylim([min(xdata[1]),max(xdata[1])])
-        ax.scatter(xdata[0],xdata[1])
-        title = f"{(1-tolout.columns[0])*100}%/{tolout.index[0]*100}% Tolerance Region"
+        ax.scatter(xdata[0],xdata[1],s=10)
+        #title = f"{(1-tolout.columns[0])*100}%/{tolout.index[0]*100}% Tolerance Region"
         ax.set_title(title)
         mu = xdata.mean(axis=1)
         sigma = np.cov(xdata)
@@ -1839,7 +1840,8 @@ Examples
         v1 = pd.concat([pd.DataFrame(r1*np.cos(theta)),pd.DataFrame(r1*np.sin(theta))],axis=1)
         mu = np.expand_dims(mu,axis=-1)
         pts = pd.DataFrame((mu - np.dot(e1,v1.T)).T)
-        ax.autoscale(enable=True)
+        #ax.autoscale(enable=True)
+        ax.set_aspect('equal','datalim')
         ax.plot(pts[0],pts[1],color='r',lw=0.5)
     elif length(xdata) == 3 and NonLinReg == False and type(tolout) is not dict:
         fig = plt.figure()
@@ -1889,13 +1891,25 @@ Examples
         out1 = out1.sort_values(by=['XX'])
         out1.index = range(length(out1.iloc[:,0]))
         if length(tolout.iloc[0]) == 6:
-            plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'r', ls='-.', label = '1-Sided Lower Limit')
-            plt.plot(out1.iloc[:,0],out1.iloc[:,3], color = 'black', ls='-', label = 'Best Fit Line')
-            plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='--', label = '1-Sided Upper Limit')
+            if '2-sided.lower' in tolout.columns:
+                plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'r', ls='-.', label = '2-Sided Lower Limit')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,3], color = 'black', ls='-', label = 'Best Fit Line')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='--', label = '2-Sided Upper Limit')
+            else:
+                print("NOTE: The plot reflects two 1-sided tolerance intervals and NOT a 2-sided tolerance interval!")
+                plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'r', ls='-.', label = '1-Sided Lower Limit')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,3], color = 'black', ls='-', label = 'Best Fit Line')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='--', label = '1-Sided Upper Limit')
         elif length(tolout.iloc[0]) == 7:
-            plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='-.', label = '1-Sided Lower Limit')
-            plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'black', ls='-', label = 'Best Fit Line')
-            plt.plot(out1.iloc[:,0],out1.iloc[:,7], color = 'r', ls='--', label = '1-Sided Upper Limit')
+            if '1-sided.lower' in tolout.columns:
+                print("NOTE: The plot reflects two 1-sided tolerance intervals and NOT a 2-sided tolerance interval!")
+                plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='-.', label = '1-Sided Lower Limit')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'black', ls='-', label = 'Best Fit Line')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,7], color = 'r', ls='--', label = '1-Sided Upper Limit')
+            else:
+                plt.plot(out1.iloc[:,0],out1.iloc[:,6], color = 'r', ls='-.', label = '2-Sided Lower Limit')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,5], color = 'black', ls='-', label = 'Best Fit Line')
+                plt.plot(out1.iloc[:,0],out1.iloc[:,7], color = 'r', ls='--', label = '2-Sided Upper Limit')
         plt.title(f"{(1-tolout.iloc[0,0])*100}%/{tolout.iloc[0,1]*100}% Tolerance Limits")
         plt.xlabel(xlab)
         plt.ylabel(ylab)
@@ -1908,6 +1922,8 @@ Examples
         for i in range(length(tolout)):
             keys.append(list(tolout)[i])
             values.append(list(tolout.values())[i])
+        if '1-sided.lower' in values[0]:
+            print("NOTE: The plot reflects two 1-sided tolerance intervals and NOT a 2-sided tolerance interval!")
         dictlen = length(tolout)
         fig, axs = plt.subplots(1,dictlen)
         A1ticks = []
@@ -1949,7 +1965,7 @@ Examples
 # tension = 'L L L L L L L L L M M M M M M M M M H H H H H H H H H L L L L L L L L L M M M M M M M M M H H H H H H H H H'.split(' ')
 # warpbreaks = pd.DataFrame({'breaks':breaks,'wool':wool,'tension':tension})
 # lmout = ols('breaks ~ wool + tension',warpbreaks).fit()
-# anova = anovatolint(lmout, data = warpbreaks, alpha = 0.10, P = 0.95, side = 2, method = "HE")
+# anova = anovatolint(lmout, data = warpbreaks, alpha = 0.10, P = 0.95, side = 1, method = "HE")
 # plottol(anova)
       
 ## Nonlinear regression
@@ -1962,11 +1978,11 @@ Examples
 #     except:
 #         #make this the symbolic version of the function using sympy
 #         return b1 + (0.49-b1)*sp.exp(-b2*(x-8)) 
-# #x = pd.DataFrame(st.uniform.rvs(size=10, loc=5, scale=45))
-# x = pd.DataFrame(np.array([44.5, 1.1, 6.2, 35.2, 23.8, 30.1, 13.9]))
-# #y = formula1(x.iloc[:,0], 0.39, 0.11) + st.norm.rvs(size = length(x), scale = 0.01) #response
+# x = pd.DataFrame(st.uniform.rvs(size=500, loc=5, scale=45))
+# #x = pd.DataFrame(np.array([44.5, 1.1, 6.2, 35.2, 23.8, 30.1, 13.9]))
+# y = formula1(x.iloc[:,0], 0.39, 0.11) + st.norm.rvs(size = length(x), scale = 0.01) #response
 # #print(y)
-# y = pd.Series(np.array([.38,.58, .54, .37, .43, .39, .44]))
+# #y = pd.Series(np.array([.38,.58, .54, .37, .43, .39, .44]))
 # xy = pd.concat([y,x],axis=1)
 # xy.columns = ['y','x']
 # YLIM = nonlinregtolint(formula1, xydata=xy,alpha = 0.05, P = 0.99, side = 2)
@@ -2024,15 +2040,65 @@ Examples
 # tol.index = [0.99]
 # plottol(tol,xdata)
 
-# # 2D
-# np.random.seed(1)
+# #2D
+#np.random.seed(1)
 # x1 = np.random.normal(0,0.2,size = 1000)
 # x2 = np.random.normal(0,0.5,size = 1000)
+# #RFDAWG
+# def generate_TLE(typed,meanx=0,meany=0,sdx=1,sdy=1,size = 50):
+#     #pandas is slow
+#     if typed == 'normal':
+#         cross = np.random.normal(meanx,sdx,size)
+#         along = np.random.normal(meany,sdy,size)
+#         return [cross,along]
+#     if typed == 'cluster': #same method to fix this as 'two'
+#         cross = np.random.normal(meanx,sdx,int(size*.8))
+#         along = np.random.normal(meany,sdy,int(size*.8))
+#         cross = np.hstack((cross,np.random.normal(100,50,int(size*.2)))) #meanx* = 100, sdx*=50
+#         along = np.hstack((along,np.random.normal(2000,50,int(size*.2)))) #meany* = 2000, sdy* = 50
+#         return [cross,along]
+#     if typed == 'two':
+#         cross = np.random.normal(meanx,sdx,int(size*.5))
+#         along = np.random.normal(meany,sdy,int(size*.5))
+#         cross = np.hstack((cross,np.random.normal(500,100,int(size*.5)))) #meanx* = 500, sdx*=100
+#         along = np.hstack((along,np.random.normal(1500,500,int(size*.5)))) #meany* = 1500, sdy* = 500
+#         return [cross, along]
+#     if typed == 'outliers':
+#         cross = np.random.normal(meanx,sdx,int(size*.90))
+#         along = np.random.normal(meany,sdy,int(size*.90))
+#         cross = np.hstack((cross,np.random.normal(0,500,int(size*.1))))
+#         along = np.hstack((along,np.random.normal(0,2500,int(size*.1))))
+#         return [cross,along]
+#     else:
+#         return 'Incorrect type specified'
+# x1, x2 = generate_TLE('normal',meanx=0,meany=0,sdx=100,sdy=500,size = 100)
 # xdata = [x1,x2]
-# tol = pd.DataFrame([9.635502]).T
-# tol.columns = [0.1]
-# tol.index = [0.99]
-# plottol(tol,xdata)
+# tol = pd.DataFrame([4.653130553857355]).T
+# tol.columns = [0.1] #alpha
+# tol.index = [0.9] #P
+# plottol(tol,xdata,xlab = 'Cross-Track Error (ft)', ylab = 'Along-Track Error (ft)', title = 'normal')
+
+# x1, x2 = generate_TLE('two',meanx=0,meany=0,sdx=100,sdy=500,size = 100)
+# xdata = [x1,x2]
+# tol = pd.DataFrame([4.653215991165444]).T
+# tol.columns = [0.1] #alpha
+# tol.index = [0.9] #P
+# plottol(tol,xdata,xlab = 'Cross-Track Error (ft)', ylab = 'Along-Track Error (ft)', title = 'two')
+
+# x1, x2 = generate_TLE('cluster',meanx=0,meany=0,sdx=100,sdy=500,size = 100)
+# xdata = [x1,x2]
+# tol = pd.DataFrame([4.652875519340747]).T
+# tol.columns = [0.1] #alpha
+# tol.index = [0.9] #P
+# plottol(tol,xdata,xlab = 'Cross-Track Error (ft)', ylab = 'Along-Track Error (ft)', title = 'cluster')
+
+# x1, x2 = generate_TLE('outliers',meanx=0,meany=0,sdx=100,sdy=500,size = 100)
+# xdata = [x1,x2]
+# tol = pd.DataFrame([4.6544325019075075]).T
+# tol.columns = [0.1] #alpha
+# tol.index = [0.9] #P
+# plottol(tol,xdata,xlab = 'Cross-Track Error (ft)', ylab = 'Along-Track Error (ft)', title = 'outliers')
+
 
 # #Linear Regression
 #x = np.random.uniform(10, size = 5)
