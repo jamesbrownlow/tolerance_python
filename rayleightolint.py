@@ -31,7 +31,7 @@ def RaylMLEScens(xc, n):
     a1 = x[0]
     aMLE = brentq(fn, a = a0, b = a1, xtol = 1e-5, maxiter = 20)
     bMLE = np.sqrt(0.5*sum((x-aMLE)**2)/r)
-    return [aMLE, bMLE]
+    return np.array([aMLE, bMLE])
 
 def RaylMLESuncens(x):
     n = length(x)
@@ -45,7 +45,7 @@ def RaylMLESuncens(x):
         return (hs)
     aMLE = brentq(ha, a = a0, b = a1, xtol = 1e-5, maxiter = 30)
     bMLE = np.sqrt(sum((np.array(x)-aMLE)**2)/2/n)
-    return [aMLE, bMLE]
+    return np.array([aMLE, bMLE])
 
 def RaylMLES(x, n, censored):
     if censored:
@@ -63,16 +63,18 @@ def RayOneSidedFac(nr, n, r, P, alpha, censored):
     xm = np.sqrt(-2*np.log(u)).reshape(n,nr).T
     xm = pd.DataFrame(np.array(list(map(np.sort,xm))))
     xc = xm.iloc[:,0:r]
-    mles = []
+    mles = np.zeros(length(xc.iloc[:,0]),dtype = 'object')
     for i in range(length(xc.iloc[:,0])):
-        mles.append(RaylMLES(xc.iloc[i].values, n, censored))
-    mles = pd.DataFrame(mles).T
+        mles[i] = RaylMLES(xc.iloc[i].values, n, censored)
+    mles0 = [x[0] for x in mles]
+    mles1 = [x[1] for x in mles]
+    mles = pd.DataFrame(np.array([mles0,mles1]))
     ahs = mles.iloc[0].values
     bhs = mles.iloc[1].values
     pivL = np.sort((qlow-ahs)/bhs)
     pivU = np.sort((qupp-ahs)/bhs)
     if int(nr*al) == 0:
-        return pivU[int(nr*(1-al))-1]
+        return [min(pivL),pivU[int(nr*(1-al))-1]]
     else:
         Low = pivL[int(nr*al)-1]
         Upp = pivU[int(nr*(1-al))-1]
@@ -88,10 +90,12 @@ def RaylTF(nr, n, r, P, alpha, censored, tails):
     xm = np.sqrt(-2*np.log(u)).reshape(n,nr).T
     xm = pd.DataFrame(np.array(list(map(np.sort,xm))))
     xc = xm.iloc[:,0:r]
-    mles = []
+    mles = np.zeros(length(xc.iloc[:,0]))
     for i in range(length(xc.iloc[:,0])):
-        mles.append(RaylMLES(xc.iloc[i].values, n, censored))
-    mles = pd.DataFrame(mles).T
+        mles[i] = RaylMLES(xc.iloc[i].values, n, censored)
+    mles0 = [x[0] for x in mles]
+    mles1 = [x[1] for x in mles]
+    mles = pd.DataFrame(np.array([mles0,mles1]))
     ahs = mles.iloc[0].values
     bhs = mles.iloc[1].values
     pivL = np.sort((qlow-ahs)/bhs)
@@ -230,10 +234,7 @@ Examples
     '''
     alpha = 1-alpha
     n = length(x)
-    if censored:
-        r = length(x)
-    else:
-        r = n
+    r = length(x)
     mles = RaylMLES(x, n, censored)
     ah0 = mles[0]
     bh0 = mles[1]
@@ -262,13 +263,14 @@ Examples
         return pd.DataFrame({'alpha': [1-alpha], 'P': [P], 'equal-tailed.lower':EQLow, 'equal-tailed.upper':EQUpp})
     
 ## Tests
-# x = rayleigh.rvs(size = 1000)
-# print(rayleightolint(x,0.05,0.95, 1),'\n')
+# x = rayleigh.rvs(size = 100000)
+# print(rayleightolint(x,0.05,0.95, 1, nr = 100),'\n')
 # print(rayleightolint(x,0.05,0.95, 2),'\n')
 # print(rayleightolint(x,0.05,0.95, 'equal-tailed'))
 
 ## True Percentile Values
-#print(rayleigh.ppf(0.95))
+# print(rayleigh.ppf(0.95))
+# print(rayleigh.ppf(0.05))
 #print(rayleigh.ppf([0.025,0.975]))
 
 ## Notes
